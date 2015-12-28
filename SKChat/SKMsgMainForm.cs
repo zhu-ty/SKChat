@@ -55,9 +55,9 @@ namespace SKChat
             //listBox1.Items.Add(new ListBoxItemEx("哈哈哈","","",null,true));
             //listBox1.Items.Add(new ListBoxItemEx("2013011465","天启","该用户很懒，没有签名",null,false));
             
-            add_friend("2013011460", "冯乔俊", "我好喜欢我女友", null);
-            add_friend("2013011455", "朱天奕", "生于忧患，死于安乐", null);
-            add_friend("2013011550", "安亮", "hahah", null);
+            //add_friend("2013011460", "冯乔俊", "我好喜欢我女友", null);
+            //add_friend("2013011455", "朱天奕", "生于忧患，死于安乐", null);
+            //add_friend("2013011550", "安亮", "hahah", null);
             refresh();
         }
         /// <summary>
@@ -67,8 +67,10 @@ namespace SKChat
         /// <param name="e"></param>
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-            if (textBox1.Text.Length > 30)
+            if (textBox1.Text.Length > 20)
                 textBox1.Text = textBox1.Text.Substring(0, 20);
+            if(msg_core != null)
+                msg_core._my_name = textBox1.Text;
         }
 
         /// <summary>
@@ -88,8 +90,10 @@ namespace SKChat
         /// <param name="e"></param>
         private void textBox2_TextChanged(object sender, EventArgs e)
         {
-            if (textBox1.Text.Length > 30)
-                textBox1.Text = textBox1.Text.Substring(0, 20);
+            if (textBox2.Text.Length > 30)
+                textBox2.Text = textBox2.Text.Substring(0, 30);
+            if (msg_core != null)
+                msg_core._my_comment = textBox2.Text;
         }
         /// <summary>
         /// 打开新窗口，调用刷新
@@ -114,10 +118,11 @@ namespace SKChat
         /// <param name="remarks"></param>
         /// <param name="comment"></param>
         /// <param name="img"></param>
-        public void add_friend(string id, string remarks, string comment, Bitmap img)
+        public SKMsgCore.SKFriend add_friend(string id, string remarks, string comment, Bitmap img)
         {
-            msg_core.add_friend(id,remarks,comment);
+            SKMsgCore.SKFriend f = msg_core.add_friend(id, remarks, comment);
             refresh();
+            return f;
         }
         /// <summary>
         /// 获得本人名字
@@ -136,24 +141,55 @@ namespace SKChat
             return textBox2.Text;
         }
         /// <summary>
+        /// 只在开始时调用一次
+        /// </summary>
+        /// <param name="__name"></param>
+        public void set_name(string __name)
+        {
+            textBox1.Text = __name;
+        }
+        /// <summary>
+        /// 只在开始时调用一次
+        /// </summary>
+        /// <param name="__name"></param>
+        public void set_comment(string __comment)
+        {
+            textBox2.Text = __comment;
+        }
+        /// <summary>
         /// 刷新（会调用内核刷新）
         /// </summary>
         public void refresh()
         {
-            msg_core.refresh();
-            listBox1.Items.Clear();
-            foreach (SKMsgCore.SKFriend f in msg_core.friend_list)
+            Action refresh_act = () =>
             {
-                listBox1.Items.Add(f);
-            }
+                msg_core.refresh();
+                listBox1.Items.Clear();
+                foreach (SKMsgCore.SKFriend f in msg_core.friend_list)
+                {
+                    listBox1.Items.Add(f);
+                }
+            };
+            listBox1.Invoke(refresh_act);
+            //msg_core.refresh();
+            //listBox1.Items.Clear();
+            //foreach (SKMsgCore.SKFriend f in msg_core.friend_list)
+            //{
+            //    listBox1.Items.Add(f);
+            //}
         }
 
         private void button_add_Click(object sender, EventArgs e)
         {
             SKAddFriendForm saff = new SKAddFriendForm();
             saff.ShowDialog();
-            if (saff.stu_num != null)
+            if (saff.stu_num != "")
                 add_friend(saff.stu_num, "", "", null);
+        }
+
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            refresh();
         }
     }
 
@@ -265,7 +301,7 @@ namespace SKChat
                             if (item.Img != null)
                                 e.Graphics.DrawImage(item.Img, new Rectangle(bound.Left + 5, bound.Top + 6, 40, 48));
                             e.Graphics.DrawString(item.show_name + "(" + item.stu_num + ")", new Font("微软雅黑", 10), Brushes.White, new PointF(bound.Left + 5 + 50, bound.Top + 6));
-                            e.Graphics.DrawString("个性签名:“" + item.note + "”", new Font("微软雅黑", 11), Brushes.White, new PointF(bound.Left + 5 + 50, bound.Top + 20 + 6));
+                            e.Graphics.DrawString("个性签名:“" + item.comment + "”", new Font("微软雅黑", 11), Brushes.White, new PointF(bound.Left + 5 + 50, bound.Top + 20 + 6));
 
                         }
                         else if (item == UnderMouseItem)
@@ -274,14 +310,14 @@ namespace SKChat
                             if (item.Img != null)
                                 e.Graphics.DrawImage(item.Img, new Rectangle(bound.Left + 5, bound.Top + 6, 40, 48));
                             e.Graphics.DrawString(item.show_name + "(" + item.stu_num + ")", new Font("微软雅黑", 10), Brushes.Black, new PointF(bound.Left + 5 + 50, bound.Top + 6));
-                            e.Graphics.DrawString("个性签名:“" + item.note + "”", new Font("微软雅黑", 11), Brushes.Black, new PointF(bound.Left + 5 + 50, bound.Top + 20 + 6));
+                            e.Graphics.DrawString("个性签名:“" + item.comment + "”", new Font("微软雅黑", 11), Brushes.Black, new PointF(bound.Left + 5 + 50, bound.Top + 20 + 6));
                         }
                         else
                         {
                             if (item.Img != null)
                                 e.Graphics.DrawImage(item.Img, new Rectangle(bound.Left + 5, bound.Top + 6, 40, 48));
                             e.Graphics.DrawString(item.show_name + "(" + item.stu_num + ")", new Font("微软雅黑", 10), Brushes.Black, new PointF(bound.Left + 5 + 50, bound.Top + 6));
-                            e.Graphics.DrawString("个性签名:“" + item.note + "”", new Font("微软雅黑", 11), Brushes.Black, new PointF(bound.Left + 5 + 50, bound.Top + 20 + 6));
+                            e.Graphics.DrawString("个性签名:“" + item.comment + "”", new Font("微软雅黑", 11), Brushes.Black, new PointF(bound.Left + 5 + 50, bound.Top + 20 + 6));
                         }
                     }
                 }

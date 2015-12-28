@@ -61,14 +61,17 @@ namespace DA32ProtocolCsharp
                 string type_s = (string)json_object["type"];
                 string time_s = (string)json_object["time"];
                 string md5 = (string)json_object["md5"];
+                string stu_num = (string)json_object["stu_num"];
                 md5 = md5.ToLower();
                 SKMsgInfoBase.mestype type = get_type(type_s);
                 switch (type)
                 {
                     case SKMsgInfoBase.mestype.EXIT:
                     case SKMsgInfoBase.mestype.RESPONSE:
+                    case SKMsgInfoBase.mestype.FRIEND_INVITE:
                         {
                             info_base = new SKMsgInfoBase();
+                            info_base.stu_num = stu_num;
                             info_base.id = id;
                             info_base.type = type;
                             info_base.verified = true;
@@ -79,6 +82,7 @@ namespace DA32ProtocolCsharp
                     case SKMsgInfoBase.mestype.FILE:
                         {
                             info_base = new SKMsgInfoFile();
+                            info_base.stu_num = stu_num;
                             SKMsgInfoFile info_file = (SKMsgInfoFile)info_base;
                             info_file.id = id;
                             info_file.type = type;
@@ -97,6 +101,7 @@ namespace DA32ProtocolCsharp
                     case SKMsgInfoBase.mestype.FILE_INVITE:
                         {
                             info_base = new SKMsgInfoFileInvite();
+                            info_base.stu_num = stu_num;
                             SKMsgInfoFileInvite info_file_invite = (SKMsgInfoFileInvite)info_base;
                             info_file_invite.id = id;
                             info_file_invite.type = type;
@@ -110,6 +115,7 @@ namespace DA32ProtocolCsharp
                     case SKMsgInfoBase.mestype.GROUP_TEXT:
                         {
                             info_base = new SKMsgInfoGroupText();
+                            info_base.stu_num = stu_num;
                             SKMsgInfoGroupText info_group_text = (SKMsgInfoGroupText)info_base;
                             info_group_text.id = id;
                             info_group_text.type = type;
@@ -128,6 +134,7 @@ namespace DA32ProtocolCsharp
                     case SKMsgInfoBase.mestype.TEXT:
                         {
                             info_base = new SKMsgInfoText();
+                            info_base.stu_num = stu_num;
                             SKMsgInfoText info_text = (SKMsgInfoText)info_base;
                             info_text.id = id;
                             info_text.type = type;
@@ -172,6 +179,7 @@ namespace DA32ProtocolCsharp
                 s += "\"else\":{},";
                 s += "\"id\":" + info_base.id.ToString() + ",";
                 s += "\"time\":\"" + info_base.timestamp.ToString("yyyy.MM.dd HH:mm:ss") + "\",";
+                s += "\"stu_num\":\"" + info_base.stu_num + "\",";
                 switch (info_base.type)
                 {
                     case SKMsgInfoBase.mestype.EXIT:
@@ -251,6 +259,19 @@ namespace DA32ProtocolCsharp
                             ret = true;
                             break;
                         }
+                    case SKMsgInfoBase.mestype.FRIEND_INVITE:
+                        {
+                            s += "\"type\":\"friend_invite\",";
+                            s += "\"data\":{},";
+                            List<byte[]> con_byte = new List<byte[]>();
+                            con_byte.Add(BitConverter.GetBytes(info_base.id));
+                            con_byte.Add(Encoding.UTF8.GetBytes("friend_invite"));
+                            con_byte.Add(Encoding.UTF8.GetBytes(info_base.timestamp.ToString("yyyy.MM.dd HH:mm:ss")));
+                            s += "\"md5\":\"" + getmd5(byte_connect(con_byte)) + "\"";
+                            s += "}";
+                            ret = true;
+                            break;
+                        }
                     case SKMsgInfoBase.mestype.TEXT:
                         {
                             SKMsgInfoText info_text = (SKMsgInfoText)info_base;
@@ -309,7 +330,8 @@ namespace DA32ProtocolCsharp
             }
             return ret;
         }
-
+        #region old_version
+        /*
         ///<summary>
         ///当bool=true且type为TEXT时，更新last_textmes
         /// </summary>
@@ -522,7 +544,8 @@ namespace DA32ProtocolCsharp
             send_textmes.name = name;
             return true;
         }
-
+        */
+        #endregion
         private SKMsgInfoBase.mestype get_type(string s)
         {
             if (s.ToLower() == "text")
@@ -537,6 +560,8 @@ namespace DA32ProtocolCsharp
                 return SKMsgInfoBase.mestype.FILE;
             else if (s.ToLower() == "file_invite")
                 return SKMsgInfoBase.mestype.FILE_INVITE;
+            else if (s.ToLower() == "friend_invite")
+                return SKMsgInfoBase.mestype.FRIEND_INVITE;
             else
                 return SKMsgInfoBase.mestype.UNDEFINED;
         }

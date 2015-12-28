@@ -51,5 +51,11 @@ namespace SKChat
         {
 
         }
+
+        private void SKAddFriendForm_Shown(object sender, EventArgs e)
+        {
+            textBox1.Focus();
+            textBox1.SelectAll();
+        }
     }
 }

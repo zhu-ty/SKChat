@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SKRichtextboxInserter.cs" />
     <Compile Include="SKAddFriendForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -81,9 +82,11 @@
     <Compile Include="SKServer.cs" />
     <EmbeddedResource Include="SKAddFriendForm.resx">
       <DependentUpon>SKAddFriendForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="LoginForm.resx">
       <DependentUpon>LoginForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -97,9 +100,11 @@
     </Compile>
     <EmbeddedResource Include="SKMsgMainForm.resx">
       <DependentUpon>SKMsgMainForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="SKMsgWindow.resx">
       <DependentUpon>SKMsgWindow.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

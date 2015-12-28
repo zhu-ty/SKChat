@@ -20,7 +20,7 @@ namespace SKChat
             friend = _friend;
             core = _core;
             label1.Text = friend.show_name + "(" + friend.stu_num + ")";
-            label2.Text = friend.note;
+            label2.Text = friend.comment;
             if (friend.Img != null)
                 pictureBox1.Image = friend.Img;
             this.Visible = true;
@@ -37,7 +37,7 @@ namespace SKChat
                 richTextBox1.SelectionColor = Color.Green;
                 richTextBox1.Select(0, 0);
                 label1.Text = friend.show_name + "(" + friend.stu_num + ")";
-                label2.Text = friend.note;
+                label2.Text = friend.comment;
                 richTextBox1.SelectionStart = richTextBox1.Text.Length;
                 richTextBox1.ScrollToCaret();
                 //friend.name = t.text_pack.name;
@@ -46,6 +46,8 @@ namespace SKChat
         }
         private void button1_Click(object sender, EventArgs e)
         {
+            if (richTextBox2.Text == string.Empty)
+                return;
             core.send_text(friend.stu_num, richTextBox2.Text);
             if (richTextBox1.Text != string.Empty)
                 richTextBox1.AppendText("\r\n");
@@ -58,7 +60,7 @@ namespace SKChat
         public void refresh_lable()
         {
             label1.Text = friend.show_name + "(" + friend.stu_num + ")";
-            label2.Text = friend.note;
+            label2.Text = friend.comment;
             if (friend.Img != null)
                 pictureBox1.Image = friend.Img;
         }

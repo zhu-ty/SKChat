@@ -64,7 +64,7 @@
             this.textBox1.TabIndex = 2;
             this.textBox1.Text = "输入学号...";
             // 
-            // add_form
+            // SKAddFriendForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -73,10 +73,11 @@
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "add_form";
+            this.Name = "SKAddFriendForm";
             this.Text = "增加好友";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.add_form_FormClosed);
             this.Load += new System.EventHandler(this.add_form_Load);
+            this.Shown += new System.EventHandler(this.SKAddFriendForm_Shown);
             this.ResumeLayout(false);
             this.PerformLayout();
 

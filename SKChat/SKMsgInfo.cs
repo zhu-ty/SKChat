@@ -17,6 +17,7 @@ namespace SKChat
             GROUP_TEXT,
             FILE,
             FILE_INVITE,
+            FRIEND_INVITE,
             UNDEFINED
         }
         public mestype type = mestype.UNDEFINED;
@@ -24,6 +25,7 @@ namespace SKChat
         public int id;
         public DateTime timestamp;
         public IPAddress ip;
+        public string stu_num;
     }
     public class SKMsgInfoText : SKMsgInfoBase
     {

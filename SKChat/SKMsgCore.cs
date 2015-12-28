@@ -46,8 +46,10 @@ namespace SKChat
             }
             catch (Exception) { }
         }
-        public void new_window(SKFriend listboxitem)
+        public SKMsgWindow new_window(SKFriend listboxitem)
         {
+            if (listboxitem == null)
+                return null;
             for (int i = 0;i < window_list.Count;i++)
             {
                 SKMsgWindow msg_window = window_list[i];
@@ -58,10 +60,12 @@ namespace SKChat
                 }
                 else if (msg_window.friend.stu_num == listboxitem.stu_num)
                 {
-                    return;
+                    return msg_window;
                 }
             }
-            window_list.Add(new SKMsgWindow(listboxitem,this));
+            SKMsgWindow neww = new SKMsgWindow(listboxitem, this);
+            window_list.Add(neww);
+            return neww;
         }
         public void refresh()
         {
@@ -96,35 +100,98 @@ namespace SKChat
                 }
             }
         }
-        public void receive_mes(object sender,SKMsgInfoBase msg_info)
+        public void receive_mes(object sender,SKMsgInfoBase _msg_info)
         {
-            if (msg_info.type == SKMsgInfoBase.mestype.TEXT)
+            Action<SKMsgInfoBase> receive_act = (msg_info) =>
             {
-                string this_stu_num = "";
-                foreach (SKFriend f in friend_list)
+                if (msg_info.type == SKMsgInfoBase.mestype.TEXT)
                 {
-                    if (f != null && f.ip != null && f.ip.ToString() == msg_info.ip.ToString())
+                    string this_stu_num = "";
+                    SKFriend ff = null;
+                    foreach (SKFriend f in friend_list)
                     {
-                        this_stu_num = f.stu_num;
-                        f.name = (msg_info as SKMsgInfoText).text_pack.name;
-                        break;
+                        if (f != null && f.ip != null && f.ip.ToString() == msg_info.ip.ToString())
+                        {
+                            this_stu_num = f.stu_num;
+                            f.name = (msg_info as SKMsgInfoText).text_pack.name;
+                            ff = f;
+                            break;
+                        }
+                    }
+                    if (this_stu_num == "")
+                    {
+                        SKFriend newf = master.add_friend(msg_info.stu_num, ((SKMsgInfoText)msg_info).text_pack.name, "", null);
+                        SKMsgWindow neww = new_window(newf);
+                        neww.add_rev_text((SKMsgInfoText)msg_info);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < window_list.Count; i++)
+                        {
+                            SKMsgWindow msg_window = window_list[i];
+                            if (msg_window == null || msg_window.Visible == false)
+                            {
+                                window_list.Remove(msg_window);
+                                i--;
+                            }
+                            else if (msg_window.friend.stu_num == this_stu_num)
+                            {
+                                //找到了已经打开的窗口
+                                msg_window.add_rev_text((SKMsgInfoText)msg_info);
+                                return;
+                            }
+                        }
+                        //未找到已打开的窗口
+                        SKMsgWindow neww = new_window(ff);
+                        neww.add_rev_text((SKMsgInfoText)msg_info);
                     }
                 }
-                for (int i = 0; i < window_list.Count; i++)
-                {
-                    SKMsgWindow msg_window = window_list[i];
-                    if (msg_window == null || msg_window.Visible == false)
-                    {
-                        window_list.Remove(msg_window);
-                        i--;
-                    }
-                    else if (msg_window.friend.stu_num == this_stu_num)
-                    {
-                        msg_window.add_rev_text((SKMsgInfoText)msg_info);
-                        break;
-                    }
-                }
-            }
+            };
+            master.Invoke(receive_act, _msg_info);
+            #region no_invoke
+            //if (msg_info.type == SKMsgInfoBase.mestype.TEXT)
+            //{
+            //    string this_stu_num = "";
+            //    SKFriend ff = null;
+            //    foreach (SKFriend f in friend_list)
+            //    {
+            //        if (f != null && f.ip != null && f.ip.ToString() == msg_info.ip.ToString())
+            //        {
+            //            this_stu_num = f.stu_num;
+            //            f.name = (msg_info as SKMsgInfoText).text_pack.name;
+            //            ff = f;
+            //            break;
+            //        }
+            //    }
+            //    if (this_stu_num == "")
+            //    {
+            //        SKFriend newf = master.add_friend(msg_info.stu_num,"","",null);
+            //        SKMsgWindow neww = new_window(newf);
+            //        neww.add_rev_text((SKMsgInfoText)msg_info);
+            //    }
+            //    else
+            //    {
+            //        for (int i = 0; i < window_list.Count; i++)
+            //        {
+            //            SKMsgWindow msg_window = window_list[i];
+            //            if (msg_window == null || msg_window.Visible == false)
+            //            {
+            //                window_list.Remove(msg_window);
+            //                i--;
+            //            }
+            //            else if (msg_window.friend.stu_num == this_stu_num)
+            //            {
+            //                //找到了已经打开的窗口
+            //                msg_window.add_rev_text((SKMsgInfoText)msg_info);
+            //                return;
+            //            }
+            //        }
+            //        //未找到已打开的窗口
+            //        SKMsgWindow neww = new_window(ff);
+            //        neww.add_rev_text((SKMsgInfoText)msg_info);
+            //    }
+            //}
+            #endregion
         }
         public void send_text(string target_stu_num, string text)
         {
@@ -133,6 +200,7 @@ namespace SKChat
             {
                 //clients.SendText(random.Next(0, 65535), master.get_name(), text, tar_ip, DateTime.Now);
                 SKMsgInfoText sit = new SKMsgInfoText();
+                sit.stu_num = my_stu_num;
                 sit.text_pack.text = text;
                 sit.text_pack.name = master.get_name();
                 sit.id = random.Next(0, 65535);
@@ -141,16 +209,24 @@ namespace SKChat
                 clients.SendNotFile(sit, tar_ip);
             }
         }
-        public void add_friend(string add_stu_num,string add_stu_name = "",string add_stu_note = "")
+        /// <summary>
+        /// 只能被MainForm调用 否则会不同步
+        /// </summary>
+        /// <param name="add_stu_num"></param>
+        /// <param name="add_stu_name"></param>
+        /// <param name="add_stu_comment"></param>
+        /// <returns></returns>
+        public SKFriend add_friend(string add_stu_num, string add_stu_name = "", string add_stu_comment = "")
         {
             foreach (SKFriend ff in friend_list)
             {
                 if (ff.stu_num == add_stu_num)
-                    return;
+                    return ff;
             }
-            SKFriend f = new SKFriend(add_stu_num, add_stu_name, add_stu_note);
+            SKFriend f = new SKFriend(add_stu_num, add_stu_name, add_stu_comment);
             friend_list.Add(f);
             refresh();
+            return f;
         }
 
         void file_init()
@@ -160,17 +236,27 @@ namespace SKChat
             directory += my_stu_num;
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
+
             FileStream friend_list_stream = new FileStream(directory + "\\friend.list", FileMode.OpenOrCreate);
             StreamReader sr = new StreamReader(friend_list_stream);
             while (!sr.EndOfStream)
             {
                 string __stu_num = sr.ReadLine();
                 string __name = sr.ReadLine();
-                string __note = sr.ReadLine();
-                friend_list.Add(new SKFriend(__stu_num, __name, __note));
+                string __comment = sr.ReadLine();
+                friend_list.Add(new SKFriend(__stu_num, __name, __comment));
             }
             sr.Close();
             friend_list_stream.Close();
+
+            FileStream my_info_stream = new FileStream(directory + "\\myself.info", FileMode.OpenOrCreate);
+            StreamReader sr2 = new StreamReader(my_info_stream);
+            if (!sr2.EndOfStream)
+                my_name = sr2.ReadLine();
+            if (!sr2.EndOfStream)
+                my_comment = sr2.ReadLine();
+            sr2.Close();
+            my_info_stream.Close();
         }
         void file_save()
         {
@@ -180,6 +266,8 @@ namespace SKChat
                 directory += my_stu_num;
                 if (!Directory.Exists(directory))
                     Directory.CreateDirectory(directory);
+
+
                 if (File.Exists(directory + "\\friend.list"))
                     File.Delete(directory + "\\friend.list");
                 FileStream friend_list_stream = new FileStream(directory + "\\friend.list", FileMode.OpenOrCreate);
@@ -187,11 +275,18 @@ namespace SKChat
                 for (int i = 0; i < friend_list.Count; i++)
                 {
                     sw.WriteLine(friend_list[i].stu_num);
-                    sw.WriteLine(friend_list[i].name);
-                    sw.WriteLine(friend_list[i].note);
+                    sw.WriteLine(friend_list[i]._name);
+                    sw.WriteLine(friend_list[i]._comment);
                 }
                 sw.Close();
                 friend_list_stream.Close();
+
+                FileStream my_info_stream = new FileStream(directory + "\\myself.info", FileMode.OpenOrCreate);
+                StreamWriter sw2 = new StreamWriter(my_info_stream);
+                sw2.WriteLine(my_name);
+                sw2.WriteLine(my_comment);
+                sw2.Close();
+                my_info_stream.Close();
             }
             catch(Exception)
             {
@@ -217,6 +312,32 @@ namespace SKChat
         SKClient clients = new SKClient();
         SKServer servers = new SKServer();
         string my_stu_num;
+        public string _my_name = "HelloWorld";
+        public string _my_comment = "生于忧患，死于安乐";
+        public string my_name
+        {
+            get
+            {
+                return _my_name;
+            }
+            set
+            {
+                _my_name = value;
+                master.set_name(value);
+            }
+        }
+        public string my_comment
+        {
+            get
+            {
+                return _my_comment;
+            }
+            set
+            {
+                _my_comment = value;
+                master.set_comment(value);
+            }
+        }
         Socket login_socket;
         Random random = new Random();
 
@@ -224,15 +345,43 @@ namespace SKChat
         List<SKMsgWindow> window_list = new List<SKMsgWindow>();
         public class SKFriend
         {
-            public SKFriend(string _stu_num, string _name, string _note)
+            public SKFriend(string _stu_num, string _name, string _comment)
             {
                 stu_num = _stu_num;
                 name = _name;
-                note = _note;
+                comment = _comment;
             }
             public string stu_num = "";
-            public string name = "";
-            public string note = "";
+            public string _name = "";
+            public string _comment = "";
+            public string name
+            {
+                get
+                {
+                    if (_name == "")
+                        return "无名氏";
+                    else
+                        return _name;
+                }
+                set
+                {
+                    _name = value;
+                }
+            }
+            public string comment
+            {
+                get
+                {
+                    if (_comment == "")
+                        return "这家伙很懒，没有留下签名哦";
+                    else
+                        return _comment;
+                }
+                set
+                {
+                    _comment = value;
+                }
+            }
             public IPAddress ip = null;
             public bool online = false;
             public Bitmap Img = null;
