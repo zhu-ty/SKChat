@@ -48,6 +48,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SendFileDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SendFileDialog.Designer.cs">
+      <DependentUpon>SendFileDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="SKRichtextboxInserter.cs" />
     <Compile Include="SKAddFriendForm.cs">
       <SubType>Form</SubType>
@@ -80,6 +86,9 @@
       <DependentUpon>SKMsgWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="SKServer.cs" />
+    <EmbeddedResource Include="SendFileDialog.resx">
+      <DependentUpon>SendFileDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="SKAddFriendForm.resx">
       <DependentUpon>SKAddFriendForm.cs</DependentUpon>
       <SubType>Designer</SubType>

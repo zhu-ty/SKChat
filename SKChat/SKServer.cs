@@ -47,7 +47,7 @@ namespace DA32ProtocolCsharp
         /// <summary>
         /// 文件片段大小（字节数）
         /// </summary>
-        public const int max_fragment_size = 10000;
+        public const int max_fragment_size = 1000;
         /// <summary>
         /// 回调事件
         /// </summary>

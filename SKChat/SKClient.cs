@@ -380,6 +380,7 @@ namespace DA32ProtocolCsharp
         {
             try
             {
+                SendFileDialog sfd = new SendFileDialog();
                 ip_with_file_path ip_and_file_path = (ip_with_file_path)this_object;
                 Socket send_socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 IAsyncResult connect_result = send_socket.BeginConnect(ip_and_file_path.ip, SKServer.ListenPort, null, null);
@@ -398,9 +399,13 @@ namespace DA32ProtocolCsharp
                 int max_fragment = (int)Math.Ceiling((double)size_i / SKServer.max_fragment_size);
                 FileStream fs = new FileStream(ip_and_file_path.file_full_path, FileMode.Open);
                 BinaryReader sr = new BinaryReader(fs);
+                sfd.init(max_fragment, ip_and_file_path.stu_num);
+                sfd.Show();
+                //sfd.Update();
                 for (int i = 0; i < max_fragment; i++)
                 {
-                    int this_time_send_len = (i == max_fragment - 1) ? (size_i % SKServer.max_fragment_size) : SKServer.max_fragment_size;
+                    sfd.update(i);
+                    int this_time_send_len = ((i == max_fragment - 1) && (size_i % SKServer.max_fragment_size == 0)) ? (size_i % SKServer.max_fragment_size) : SKServer.max_fragment_size;
                     byte[] to_send = new byte[this_time_send_len];
                     int len = sr.Read(to_send, 0, this_time_send_len);
                     SKMsgInfoFile smif = new SKMsgInfoFile();

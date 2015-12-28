@@ -59,7 +59,7 @@ namespace SKChat
         }
         public void rev_file_invite(SKMsgInfoFileInvite e)
         {
-            DialogResult dr = MessageBox.Show("是否接收文件？\n文件名为" + e.file_name + "\n文件大小为：" + (e.size / 1024) + "Kb", "接收文件确认", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult dr = MessageBox.Show("是否接收文件？\n文件名为" + e.file_name + "\n文件大小为：" + (e.size / 1024) + "KB", "接收文件确认", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (dr != System.Windows.Forms.DialogResult.Yes)
             {
                 core.send_response(friend.stu_num, e.id + 1);
@@ -134,6 +134,10 @@ namespace SKChat
                 return;
             try
             {
+                label3.Visible = true;
+                progressBar1.Visible = true;
+                progressBar1.Maximum = e.max_fragment;
+                progressBar1.Value = e.this_fragment;
                 file_piece fp = new file_piece();
                 fp.num = e.this_fragment;
                 fp.file_piece_bytes = b;
@@ -160,6 +164,8 @@ namespace SKChat
                     fs = null;
                     sw = null;
                     file_pieces.Clear();
+                    label3.Visible = false;
+                    progressBar1.Visible = false;
                 }
 
                 #region old_version
