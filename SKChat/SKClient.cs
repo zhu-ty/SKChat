@@ -358,7 +358,97 @@ namespace DA32ProtocolCsharp
             client_lock.ReleaseMutex();
             return true;
         }
-
+        /// <summary>
+        /// 发送文件
+        /// </summary>
+        /// <param name="target_ip"></param>
+        /// <param name="file_full"></param>
+        /// <param name="stu_num"></param>
+        /// <returns></returns>
+        public bool SendFile(IPAddress target_ip, string file_full,string stu_num)
+        {
+            Thread file_thread = new Thread(SendFileThread);
+            file_thread.IsBackground = true;
+            ip_with_file_path this_object = new ip_with_file_path();
+            this_object.ip = target_ip;
+            this_object.stu_num = stu_num;
+            this_object.file_full_path = file_full;
+            file_thread.Start(this_object);
+            return true;
+        }
+        private void SendFileThread(object this_object)
+        {
+            try
+            {
+                ip_with_file_path ip_and_file_path = (ip_with_file_path)this_object;
+                Socket send_socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                IAsyncResult connect_result = send_socket.BeginConnect(ip_and_file_path.ip, SKServer.ListenPort, null, null);
+                connect_result.AsyncWaitHandle.WaitOne(max_connect_senconds * 1000);//10s
+                if (!connect_result.IsCompleted)
+                {
+                    send_socket.Close();
+                    return;
+                }
+                if (!File.Exists(ip_and_file_path.file_full_path))
+                    throw new Exception("文件不存在！");
+                long size = (new FileInfo(ip_and_file_path.file_full_path)).Length;
+                if (size > int.MaxValue)
+                    throw new Exception("文件大小超过2G！");
+                int size_i = (int)size;
+                int max_fragment = (int)Math.Ceiling((double)size_i / SKServer.max_fragment_size);
+                FileStream fs = new FileStream(ip_and_file_path.file_full_path, FileMode.Open);
+                BinaryReader sr = new BinaryReader(fs);
+                for (int i = 0; i < max_fragment; i++)
+                {
+                    int this_time_send_len = (i == max_fragment - 1) ? (size_i % SKServer.max_fragment_size) : SKServer.max_fragment_size;
+                    byte[] to_send = new byte[this_time_send_len];
+                    int len = sr.Read(to_send, 0, this_time_send_len);
+                    SKMsgInfoFile smif = new SKMsgInfoFile();
+                    smif.id = i;
+                    smif.max_fragment = max_fragment;
+                    smif.this_fragment = i;
+                    smif.timestamp = DateTime.Now;
+                    smif.type = SKMsgInfoBase.mestype.FILE;
+                    smif.stu_num = ip_and_file_path.stu_num;
+                    byte[] send_byte;
+                    if (!skmessage.encodemes(smif, out send_byte, to_send))
+                    {
+                        throw new Exception("转码失败，中断发送");
+                    }
+                    List<byte[]> send_byte_buffer = new List<byte[]>();
+                    send_byte_buffer.Add(SKServer.head_2_bytes);
+                    send_byte_buffer.Add(send_byte);
+                    send_byte_buffer.Add(SKServer.end_2_bytes);
+                    byte[] final_send = byte_connect(send_byte_buffer);
+                    send_socket.Send(final_send);
+                }
+                sr.Close();
+                fs.Close();
+                SKMsgInfoBase exit_info = new SKMsgInfoBase();
+                exit_info.id = 1;
+                exit_info.stu_num = ip_and_file_path.stu_num;
+                exit_info.timestamp = DateTime.Now;
+                exit_info.type = SKMsgInfoBase.mestype.EXIT;
+                byte[] send_byte2;
+                if (!skmessage.encodemes(exit_info, out send_byte2))
+                {
+                    throw new Exception("转码失败，中断发送");
+                }
+                List<byte[]> send_byte_buffer2 = new List<byte[]>();
+                send_byte_buffer2.Add(SKServer.head_2_bytes);
+                send_byte_buffer2.Add(send_byte2);
+                send_byte_buffer2.Add(SKServer.end_2_bytes);
+                byte[] final_send2 = byte_connect(send_byte_buffer2);
+                send_socket.Send(final_send2);
+                //send_socket.Close();
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.Message);
+                return;
+            }
+            return;
+        }
         /// <summary>
         /// （更新）强行向所有目标发送exit
         /// </summary>
@@ -406,7 +496,12 @@ namespace DA32ProtocolCsharp
             return ret;
         }
 
-
+        private struct ip_with_file_path
+        {
+            public IPAddress ip;
+            public string file_full_path;
+            public string stu_num;
+        }
         private Mutex client_lock = new Mutex();
         private byte[] byte_connect(List<byte[]> btlist)
         {

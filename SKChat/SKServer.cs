@@ -45,10 +45,14 @@ namespace DA32ProtocolCsharp
         /// </summary>
         public static readonly byte[] end_2_bytes = { 0x42,0xF0};
         /// <summary>
+        /// 文件片段大小（字节数）
+        /// </summary>
+        public const int max_fragment_size = 10000;
+        /// <summary>
         /// 回调事件
         /// </summary>
         public event OnServerCall ServerCall;
-        public delegate void OnServerCall(object sender, SKMsgInfoBase e);
+        public delegate void OnServerCall(object sender, SKMsgInfoBase e,byte[] file_piece = null);
         /// <summary>
         /// 开始在3232上监听，请确保回调事件已经注册
         /// </summary>
@@ -173,7 +177,22 @@ namespace DA32ProtocolCsharp
                         if (skmessage.decodemes(new_then, out eventarg, out file_fra))
                         {
                             eventarg.ip = ((IPEndPoint)(c.RemoteEndPoint)).Address;
-                            ServerCall(this, eventarg);
+                            if (eventarg.type == SKMsgInfoBase.mestype.FILE)
+                                ServerCall(this, eventarg, file_fra);
+                            else
+                            {
+                                if (eventarg.type == SKMsgInfoBase.mestype.EXIT)
+                                {
+                                    server_communication_sockets.Remove(c);
+                                    if (c.Connected)
+                                    {
+                                        c.Close();
+                                        server_lock.ReleaseMutex();
+                                        break;
+                                    }
+                                }
+                                ServerCall(this, eventarg);
+                            }
                         }
                         #region old_version
                         /*

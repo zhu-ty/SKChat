@@ -33,6 +33,7 @@ namespace SKChat
             this.listBox1.Size = new System.Drawing.Size(350, 400);
             this.listBox1.TabIndex = 4;
             this.listBox1.MouseDoubleClick += listbox1_double_click;
+            listBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         }
 
         private void SKMsgMainForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -107,8 +108,12 @@ namespace SKChat
             if (listBox1.Items.Count <= 0)
                 return;
             if (listBox1.SelectedItem != null && ((SKMsgCore.SKFriend)(listBox1.SelectedItem)).isCategory == false)
-                msg_core.new_window((SKMsgCore.SKFriend)(listBox1.SelectedItem));
-            refresh();
+            {
+                object c = listBox1.SelectedItem;
+                refresh();
+                msg_core.new_window((SKMsgCore.SKFriend)(c));
+            }
+            //refresh();
         }
 
         /// <summary>

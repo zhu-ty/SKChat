@@ -16,6 +16,7 @@ namespace SKChat
             EXIT,
             GROUP_TEXT,
             FILE,
+            //FILE_FULL,//仅在高层使用
             FILE_INVITE,
             FRIEND_INVITE,
             UNDEFINED
@@ -42,6 +43,10 @@ namespace SKChat
         public int max_fragment;
         public int this_fragment;
     }
+    //public class SKMsgInfoFileFull : SKMsgInfoBase
+    //{
+    //    public byte[] data;
+    //}
     public class SKMsgInfoFileInvite : SKMsgInfoBase
     {
         public int size;

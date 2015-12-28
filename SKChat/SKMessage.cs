@@ -205,6 +205,7 @@ namespace DA32ProtocolCsharp
                             s += "},";
                             s += "\"md5\":\"" + getmd5(file_fragment) + "\"";
                             s += "}";
+                            ret = true;
                             break;
                         }
                     case SKMsgInfoBase.mestype.FILE_INVITE:
@@ -221,6 +222,7 @@ namespace DA32ProtocolCsharp
                             con_byte.Add(Encoding.UTF8.GetBytes(info_base.timestamp.ToString("yyyy.MM.dd HH:mm:ss")));
                             s += "\"md5\":\"" + getmd5(byte_connect(con_byte)) + "\"";
                             s += "}";
+                            ret = true;
                             break;
                         }
                     case SKMsgInfoBase.mestype.GROUP_TEXT:
@@ -244,6 +246,7 @@ namespace DA32ProtocolCsharp
                             con_byte.Add(Encoding.UTF8.GetBytes(info_group_text.text_pack.text));
                             s += "\"md5\":\"" + getmd5(byte_connect(con_byte)) + "\"";
                             s += "}";
+                            ret = true;
                             break;
                         }
                     case SKMsgInfoBase.mestype.RESPONSE:
