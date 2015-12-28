@@ -272,7 +272,7 @@ namespace SKChat
                     }
                 }
                 #endregion
-                refresh();
+                master.refresh();
             };
             master.Invoke(receive_act, _msg_info);
             #region no_invoke

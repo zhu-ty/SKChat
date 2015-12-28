@@ -27,7 +27,7 @@ namespace DA32ProtocolCsharp
         /// <summary>
         /// 最大单次收取字节数
         /// </summary>
-        public const int max_byte_once = 100000;
+        public const int max_byte_once = 10000000;
         /// <summary>
         /// 包前缀长度
         /// </summary>
@@ -132,7 +132,7 @@ namespace DA32ProtocolCsharp
         private void communication(object RecvServer)
         {
             Socket c = (Socket)RecvServer;
-            c.ReceiveTimeout = 10 * 60 * 1000;//10min
+            //c.ReceiveTimeout = 10 * 60 * 1000;//10min
             c.ReceiveBufferSize = max_byte_once;
             IPAddress this_ip = ((IPEndPoint)(c.RemoteEndPoint)).Address;
             while (true)
@@ -173,12 +173,14 @@ namespace DA32ProtocolCsharp
                         byte[] new_then = byte_connect(to_connect);
                         byte[] file_fra;
                         SKMsgInfoBase eventarg;
-                        //文件还没写
                         if (skmessage.decodemes(new_then, out eventarg, out file_fra))
                         {
                             eventarg.ip = ((IPEndPoint)(c.RemoteEndPoint)).Address;
                             if (eventarg.type == SKMsgInfoBase.mestype.FILE)
+                            {
                                 ServerCall(this, eventarg, file_fra);
+                                c.Send(new byte[2] { 0x0D, 0x0A });
+                            }
                             else
                             {
                                 if (eventarg.type == SKMsgInfoBase.mestype.EXIT)

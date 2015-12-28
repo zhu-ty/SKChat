@@ -14,7 +14,7 @@ namespace SKChat
     public partial class SKMsgMainForm : Form
     {
         string stu_num;
-        SKMsgCore msg_core;
+        SKMsgCore msg_core = null;
         public ListBoxEx listBox1;
 
 
@@ -38,12 +38,14 @@ namespace SKChat
 
         private void SKMsgMainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            msg_core.stop();
+            if(msg_core != null)
+                msg_core.stop();
         }
 
         private void SKMsgMainForm_Load(object sender, EventArgs e)
         {
             this.Visible = false;
+            timer2.Enabled = false;
             LoginForm.login_info login_info = new LoginForm.login_info();
             System.Net.Sockets.Socket login_socket = new System.Net.Sockets.Socket(System.Net.Sockets.AddressFamily.InterNetwork,System.Net.Sockets.SocketType.Stream,System.Net.Sockets.ProtocolType.Tcp);
             (new LoginForm(ref login_socket, ref login_info)).ShowDialog();
@@ -59,6 +61,7 @@ namespace SKChat
             //add_friend("2013011460", "冯乔俊", "我好喜欢我女友", null);
             //add_friend("2013011455", "朱天奕", "生于忧患，死于安乐", null);
             //add_friend("2013011550", "安亮", "hahah", null);
+            timer2.Enabled = true;
             refresh();
         }
         /// <summary>

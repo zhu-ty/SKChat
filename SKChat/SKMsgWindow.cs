@@ -19,6 +19,12 @@ namespace SKChat
         public string rev_file_full_name = "";
         public bool waiting_file_sen = false;
         public string sen_file_full_name = "";
+        public struct file_piece
+        {
+            public byte[] file_piece_bytes;
+            public int num;
+        }
+        public List<file_piece> file_pieces = new List<file_piece>();
         FileStream fs = null;
         BinaryWriter sw = null;
         public SKMsgWindow(SKMsgCore.SKFriend _friend, SKMsgCore _core)
@@ -63,7 +69,7 @@ namespace SKChat
             {
                 SaveFileDialog sfd = new SaveFileDialog();
                 sfd.Title = "选择保存文件位置";
-                sfd.FileName = Directory.GetCurrentDirectory() + e.file_name;
+                sfd.FileName = e.file_name;
                 DialogResult drr = sfd.ShowDialog();
                 if (drr == System.Windows.Forms.DialogResult.OK)
                 {
@@ -75,7 +81,7 @@ namespace SKChat
                         if (filename != null && filename != "")
                             is_file = true;
                     }
-                    catch
+                    catch(Exception)
                     {
                         is_file = false;
                     }
@@ -83,6 +89,8 @@ namespace SKChat
                     {
                         rev_file_full_name = sfd.FileName;
                         core.send_response(friend.stu_num, e.id);
+                        add_text_rich1("\r\n你同意了接收文件请求，即将开始接收", Color.Blue);
+                        file_pieces.Clear();
                         waiting_file_rev = true;
                     }
                     else
@@ -104,7 +112,7 @@ namespace SKChat
         {
             if(e.id == 99999 && waiting_file_sen == true)//同意接收
             {
-                int len1 = richTextBox1.Text.Length;
+                //int len1 = richTextBox1.Text.Length;
                 add_text_rich1("\r\n对方接受了您的请求，开始传送文件", Color.Blue);
                 //发送文件
                 core.send_file(friend.stu_num, sen_file_full_name);
@@ -126,25 +134,62 @@ namespace SKChat
                 return;
             try
             {
-                if (e.this_fragment == 0)
+                file_piece fp = new file_piece();
+                fp.num = e.this_fragment;
+                fp.file_piece_bytes = b;
+                int i = 0;
+                for (i = 0; i < file_pieces.Count; i++)
+                    if (file_pieces[i].num > fp.num)
+                        break;
+                file_pieces.Insert(i, fp);
+                if (file_pieces.Count == e.max_fragment)
                 {
                     if (File.Exists(rev_file_full_name))
                         File.Delete(rev_file_full_name);
                     fs = new FileStream(rev_file_full_name, FileMode.Create);
                     sw = new BinaryWriter(fs);
-                }
-                if (fs == null || sw == null)
-                    return;
-                sw.Write(b);
-                if (e.this_fragment == e.max_fragment - 1)
-                {
+                    for (int j = 0; j < file_pieces.Count; j++)
+                    {
+                        sw.Write(file_pieces[j].file_piece_bytes);
+                    }
+                    add_text_rich1("\r\n文件接收完成", Color.Blue);
+                    core.send_response(friend.stu_num, 99999 - 1);
+                    waiting_file_rev = false;
                     sw.Close();
                     fs.Close();
                     fs = null;
                     sw = null;
-                    core.send_response(friend.stu_num, 99999 - 1);
-                    add_text_rich1("\r\n文件接收完成", Color.Blue);
+                    file_pieces.Clear();
                 }
+
+                #region old_version
+                //if (e.this_fragment == 0)
+                //{
+                //    if (File.Exists(rev_file_full_name))
+                //        File.Delete(rev_file_full_name);
+                //    fs = new FileStream(rev_file_full_name, FileMode.Create);
+                //    sw = new BinaryWriter(fs);
+                //}
+                //if ((fs == null || sw == null) && e.this_fragment == e.max_fragment - 1)
+                //{
+                //    add_text_rich1("\r\n文件传输貌似失败了呢", Color.Blue);
+                //    core.send_response(friend.stu_num, 99999 - 1);
+                //    waiting_file_rev = false;
+                //}
+                //if (fs == null || sw == null)
+                //    return;
+                //sw.Write(b);
+                //if (e.this_fragment == e.max_fragment - 1)
+                //{
+                //    sw.Close();
+                //    fs.Close();
+                //    fs = null;
+                //    sw = null;
+                //    core.send_response(friend.stu_num, 99999 - 1);
+                //    add_text_rich1("\r\n文件接收完成", Color.Blue);
+                //    waiting_file_rev = false;
+                //}
+                #endregion
             }
             catch(Exception ee)
             {
@@ -158,10 +203,8 @@ namespace SKChat
             core.send_text(friend.stu_num, richTextBox2.Text);
             if (richTextBox1.Text != string.Empty)
                 richTextBox1.AppendText("\r\n");
-            richTextBox1.AppendText(core.master.get_name() + "  " + DateTime.Now.ToString() + "\r\n" + richTextBox2.Text);
+            add_text_rich1(core.master.get_name() + "  " + DateTime.Now.ToString() + "\r\n" + richTextBox2.Text, Color.Black);
             richTextBox2.Text = "";
-            richTextBox1.SelectionStart = richTextBox1.Text.Length;
-            richTextBox1.ScrollToCaret();
             richTextBox2.Focus();
         }
         public void refresh_lable()
@@ -178,9 +221,11 @@ namespace SKChat
         private void add_text_rich1(string text, Color c)
         {
             int len1 = richTextBox1.Text.Length;
-            richTextBox1.Text += text;
-            richTextBox1.Select(len1, richTextBox1.Text.Length);
+            //richTextBox1.Text += text;
+            richTextBox1.AppendText(text);
+            richTextBox1.Select(len1, richTextBox1.Text.Length - len1);
             richTextBox1.SelectionColor = c;
+            richTextBox1.Select(0, 0);
             richTextBox1.SelectionStart = richTextBox1.Text.Length;
             richTextBox1.ScrollToCaret();
         }
@@ -209,6 +254,7 @@ namespace SKChat
                 if (waiting_file_sen)
                 {
                     sen_file_full_name = ofp.FileName;
+                    add_text_rich1("\r\n等待对方同意...", Color.Blue);
                 }
             }
             catch (Exception ee)

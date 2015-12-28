@@ -421,6 +421,13 @@ namespace DA32ProtocolCsharp
                     send_byte_buffer.Add(SKServer.end_2_bytes);
                     byte[] final_send = byte_connect(send_byte_buffer);
                     send_socket.Send(final_send);
+                    //Thread.Sleep(10);
+                    byte[] small_response = new byte[2];
+                    send_socket.Receive(small_response);
+                    if (small_response[0] == 0x0D && small_response[1] == 0x0A)
+                        continue;
+                    else
+                        Thread.Sleep(1000);
                 }
                 sr.Close();
                 fs.Close();
@@ -440,6 +447,7 @@ namespace DA32ProtocolCsharp
                 send_byte_buffer2.Add(SKServer.end_2_bytes);
                 byte[] final_send2 = byte_connect(send_byte_buffer2);
                 send_socket.Send(final_send2);
+                Thread.Sleep(10);
                 //send_socket.Close();
             }
             catch (Exception e)
