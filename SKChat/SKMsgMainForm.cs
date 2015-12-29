@@ -33,7 +33,9 @@ namespace SKChat
             this.listBox1.Size = new System.Drawing.Size(350, 400);
             this.listBox1.TabIndex = 4;
             this.listBox1.MouseDoubleClick += listbox1_double_click;
+            listBox1.MouseDown += SKListBox_MouseDown;
             listBox1.Anchor = AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            listBox1.SelectionMode = SelectionMode.MultiExtended;
         }
 
         private void SKMsgMainForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -55,12 +57,6 @@ namespace SKChat
                 Close();
             stu_num = login_info.stu_num;
             msg_core = new SKMsgCore(stu_num, login_socket,this);
-            //listBox1.Items.Add(new ListBoxItemEx("哈哈哈","","",null,true));
-            //listBox1.Items.Add(new ListBoxItemEx("2013011465","天启","该用户很懒，没有签名",null,false));
-            
-            //add_friend("2013011460", "冯乔俊", "我好喜欢我女友", null);
-            //add_friend("2013011455", "朱天奕", "生于忧患，死于安乐", null);
-            //add_friend("2013011550", "安亮", "hahah", null);
             timer2.Enabled = true;
             refresh();
         }
@@ -187,6 +183,26 @@ namespace SKChat
             //}
         }
 
+        private void SKListBox_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == System.Windows.Forms.MouseButtons.Right)
+            {
+                if (listBox1.SelectedItems.Count > 0)
+                {
+                    if (listBox1.SelectedItems.Count > 1)
+                    {
+                        发起群聊ToolStripMenuItem.Enabled = true;
+                    }
+                    else
+                    {
+                        发起群聊ToolStripMenuItem.Enabled = false;
+                    }
+                    RClick.Show(MousePosition.X, MousePosition.Y);
+                }
+                
+            }
+        }
+
         private void button_add_Click(object sender, EventArgs e)
         {
             SKAddFriendForm saff = new SKAddFriendForm();
@@ -198,6 +214,32 @@ namespace SKChat
         private void timer2_Tick(object sender, EventArgs e)
         {
             refresh();
+        }
+
+        private void 删除好友ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            List<SKMsgCore.SKFriend> to_remove = new List<SKMsgCore.SKFriend>();
+            foreach (SKMsgCore.SKFriend ff in listBox1.SelectedItems)
+            {
+                to_remove.Add(ff);
+            }
+            //SKMsgCore.SKFriend f = (SKMsgCore.SKFriend)listBox1.SelectedItem;
+            //msg_core.remove_friend(f);
+            for (int i = 0; i < to_remove.Count; i++)
+            {
+                msg_core.remove_friend(to_remove[i]);
+            }
+        }
+
+        private void 发起群聊ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            List<SKMsgCore.SKFriend> _friends_ = new List<SKMsgCore.SKFriend>();
+            foreach (object i in listBox1.SelectedItems)
+            {
+                SKMsgCore.SKFriend fi = (i as SKMsgCore.SKFriend);
+                _friends_.Add(fi);
+            }
+            msg_core.new_g_window(_friends_);
         }
     }
 
@@ -286,7 +328,7 @@ namespace SKChat
                     Rectangle bound = GetItemRectangle(i);
                     if (item.isCategory) //分类
                     {
-                        if (i == this.SelectedIndex) //选中项
+                        if (in_select(item,this.SelectedItems)) //选中项
                         {
                             e.Graphics.FillRectangle(Brushes.Gray, bound);
                             e.Graphics.DrawString(item.stu_num, new Font("微软雅黑", 12), Brushes.White, new PointF(bound.Left + 5, bound.Top + 6));
@@ -303,7 +345,7 @@ namespace SKChat
                     }
                     else  //项
                     {
-                        if (i == this.SelectedIndex)
+                        if (in_select(item, this.SelectedItems))
                         {
                             e.Graphics.FillRectangle(Brushes.Gray, bound);
                             if (item.Img != null)
@@ -353,6 +395,16 @@ namespace SKChat
         protected override void OnDoubleClick(EventArgs e)
         {
             base.OnDoubleClick(e);
+        }
+
+        private bool in_select(object item, SelectedObjectCollection items)
+        {
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (item == items[i])
+                    return true;
+            }
+            return false;
         }
     }
 }

@@ -373,6 +373,9 @@ namespace DA32ProtocolCsharp
             this_object.ip = target_ip;
             this_object.stu_num = stu_num;
             this_object.file_full_path = file_full;
+            this_object.t = file_thread;
+            this_object.m = new Mutex();
+            file_threads.Add(this_object);
             file_thread.Start(this_object);
             return true;
         }
@@ -454,13 +457,32 @@ namespace DA32ProtocolCsharp
                 send_socket.Send(final_send2);
                 Thread.Sleep(10);
                 //send_socket.Close();
+                ip_and_file_path.m.WaitOne();
+                file_threads.Remove(ip_and_file_path);
+                ip_and_file_path.m.ReleaseMutex();
             }
             catch (Exception e)
             {
-                System.Windows.Forms.MessageBox.Show(e.Message);
+                System.Windows.Forms.MessageBox.Show("文件传输中断");
                 return;
             }
             return;
+        }
+        public void file_abort(IPAddress target_ip)
+        {
+            for (int i = 0; i < file_threads.Count; i++)
+            {
+                ip_with_file_path iwfp = file_threads[i];
+                iwfp.m.WaitOne();
+                if (iwfp.ip.ToString() == target_ip.ToString())
+                {
+                    iwfp.t.Abort();
+                    file_threads.Remove(iwfp);
+                    i--;
+                }
+                iwfp.m.ReleaseMutex();
+                
+            }
         }
         /// <summary>
         /// （更新）强行向所有目标发送exit
@@ -514,7 +536,10 @@ namespace DA32ProtocolCsharp
             public IPAddress ip;
             public string file_full_path;
             public string stu_num;
+            public Thread t;
+            public Mutex m;
         }
+        private List<ip_with_file_path> file_threads = new List<ip_with_file_path>();
         private Mutex client_lock = new Mutex();
         private byte[] byte_connect(List<byte[]> btlist)
         {

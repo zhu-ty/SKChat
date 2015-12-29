@@ -17,6 +17,7 @@ namespace SKChat
     /// </summary>
     public class SKMsgCore
     {
+        bool starting = true;
         /// <summary>
         /// 启动
         /// </summary>
@@ -30,6 +31,7 @@ namespace SKChat
             servers.ServerCall += receive_mes;
             servers.start_listening();
             file_init();
+            starting = false;
         }
         /// <summary>
         /// 退出
@@ -66,6 +68,30 @@ namespace SKChat
             SKMsgWindow neww = new SKMsgWindow(listboxitem, this);
             window_list.Add(neww);
             return neww;
+        }
+        public SKGroupMsgWindow new_g_window(List<SKFriend> _friends)
+        {
+            bool find_me = false;
+            if (_friends == null || _friends.Count == 0)
+                return null;
+            for (int i = 0; i < g_window_list.Count; i++)
+            {
+                if (g_window_list[i] == null || g_window_list[i].Visible == false)
+                {
+                    g_window_list.Remove(g_window_list[i]);
+                    i--;
+                }
+                else if (compare_friends(_friends, g_window_list[i].friends))
+                    return g_window_list[i];
+            }
+            foreach (SKFriend f in _friends)
+                if (f.stu_num == my_stu_num)
+                    find_me = true;
+            if (!find_me)
+                _friends.Add(me);
+            SKGroupMsgWindow newg = new SKGroupMsgWindow(_friends, this);
+            g_window_list.Add(newg);
+            return newg;
         }
         public void refresh()
         {
@@ -272,9 +298,57 @@ namespace SKChat
                     }
                 }
                 #endregion
+                #region GROUP_TEXT
+                else if (msg_info.type == SKMsgInfoBase.mestype.GROUP_TEXT)
+                {
+                    List<SKFriend> friend_list_new = new List<SKFriend>();//用于生成当前群聊的好友列表
+                    //把群聊所有人加为好友，构造friendlist
+                    foreach (string one_more in ((SKMsgInfoGroupText)msg_info).stu_num_list)
+                    {
+                        SKFriend is_new_friend = null;
+                        foreach (SKFriend f in friend_list)
+                        {
+                            if (f != null && f.ip != null && f.stu_num == one_more)
+                            {
+                                is_new_friend = f;
+                                friend_list_new.Add(f);
+                                break;
+                            }
+                        }
+                        if (is_new_friend == null && one_more != my_stu_num)
+                        {
+                            SKFriend newf = master.add_friend(one_more,"", "", null);
+                            friend_list_new.Add(newf);
+                        }
+                    }
+                    //更新发送方的姓名
+                    foreach (SKFriend f in friend_list)
+                    {
+                        if (f != null && f.ip != null && f.stu_num == (msg_info as SKMsgInfoGroupText).stu_num)
+                        {
+                            f.name = (msg_info as SKMsgInfoGroupText).text_pack.name;
+                        }
+                    }
+                    //查看群聊窗口是否存在
+                    SKGroupMsgWindow sgmw = null;
+                    foreach (SKGroupMsgWindow n in g_window_list)
+                    {
+                        if (compare_friends(friend_list_new, n.friends))
+                        {
+                            sgmw = n;
+                            break;
+                        }
+                    }
+                    if (sgmw == null)
+                    {
+                        sgmw = new_g_window(friend_list_new);
+                    }
+                    sgmw.add_text(msg_info as SKMsgInfoGroupText);
+                }
+                #endregion
                 master.refresh();
             };
-            master.Invoke(receive_act, _msg_info);
+            master.BeginInvoke(receive_act, _msg_info);
             #region no_invoke
             //if (msg_info.type == SKMsgInfoBase.mestype.TEXT)
             //{
@@ -396,6 +470,42 @@ namespace SKChat
             }
             return false;
         }
+        public void rev_abort(string from_stu_num)
+        {
+            master.refresh();
+            IPAddress tar_ip = find_ip(from_stu_num);
+            if (tar_ip != null)
+            {
+                servers.abort(tar_ip);
+            }
+        }
+        public void send_abort(string target_stu_num)
+        {
+            master.refresh();
+            IPAddress tar_ip = find_ip(target_stu_num);
+            if (tar_ip != null)
+            {
+                clients.file_abort(tar_ip);
+            }
+            return;
+        }
+        public void send_group_text(List<SKFriend> fs, string text)
+        {
+            master.refresh();
+            SKMsgInfoGroupText sigt = new SKMsgInfoGroupText();
+            sigt.id = random.Next(65535);
+            sigt.stu_num = my_stu_num;
+            sigt.text_pack.name = master.get_name();
+            sigt.text_pack.text = text;
+            sigt.type = SKMsgInfoBase.mestype.GROUP_TEXT;
+            sigt.timestamp = DateTime.Now;
+            foreach (SKFriend f in fs)
+            {
+                sigt.stu_num_list.Add(f.stu_num);
+                if (f.online && f.stu_num != my_stu_num)
+                    clients.SendNotFile(sigt, f.ip);
+            }
+        }
         /// <summary>
         /// 只能被MainForm调用 否则会不同步
         /// </summary>
@@ -412,10 +522,15 @@ namespace SKChat
             }
             SKFriend f = new SKFriend(add_stu_num, add_stu_name, add_stu_comment);
             friend_list.Add(f);
-            refresh();
+            if(!starting)
+                master.refresh();  
             return f;
         }
-
+        public void remove_friend(SKFriend f)
+        {
+            friend_list.Remove(f);
+            master.refresh();
+        }
         void file_init()
         {
             string directory = System.Environment.CurrentDirectory + "\\Data\\";
@@ -423,18 +538,6 @@ namespace SKChat
             directory += my_stu_num;
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
-
-            FileStream friend_list_stream = new FileStream(directory + "\\friend.list", FileMode.OpenOrCreate);
-            StreamReader sr = new StreamReader(friend_list_stream);
-            while (!sr.EndOfStream)
-            {
-                string __stu_num = sr.ReadLine();
-                string __name = sr.ReadLine();
-                string __comment = sr.ReadLine();
-                friend_list.Add(new SKFriend(__stu_num, __name, __comment));
-            }
-            sr.Close();
-            friend_list_stream.Close();
 
             FileStream my_info_stream = new FileStream(directory + "\\myself.info", FileMode.OpenOrCreate);
             StreamReader sr2 = new StreamReader(my_info_stream);
@@ -444,6 +547,20 @@ namespace SKChat
                 my_comment = sr2.ReadLine();
             sr2.Close();
             my_info_stream.Close();
+            me = add_friend(my_stu_num, my_name, my_comment);
+
+            FileStream friend_list_stream = new FileStream(directory + "\\friend.list", FileMode.OpenOrCreate);
+            StreamReader sr = new StreamReader(friend_list_stream);
+            while (!sr.EndOfStream)
+            {
+                string __stu_num = sr.ReadLine();
+                string __name = sr.ReadLine();
+                string __comment = sr.ReadLine();
+                //friend_list.Add(new SKFriend(__stu_num, __name, __comment));
+                add_friend(__stu_num, __name, __comment);
+            }
+            sr.Close();
+            friend_list_stream.Close();
         }
         void file_save()
         {
@@ -494,6 +611,23 @@ namespace SKChat
             }
             return null;
         }
+        private bool compare_friends(List<SKFriend> a, List<SKFriend> b)
+        {
+            if (a.Count != b.Count)
+                return false;
+            if (a == b)
+                return true;
+            if(a.Count == b.Count && a.Count == 0)
+                return true;
+            bool suc = true;
+            for (int i = 0; i < a.Count; i++)
+                for (int j = 0; j < b.Count; j++)
+                    if (a[i].stu_num == b[j].stu_num)
+                        break;
+                    else if (a[i].stu_num != b[j].stu_num && j == b.Count - 1)
+                        return false;
+            return suc;
+        }
 
         public SKMsgMainForm master;
         SKClient clients = new SKClient();
@@ -527,9 +661,11 @@ namespace SKChat
         }
         Socket login_socket;
         Random random = new Random();
+        SKFriend me;
 
         public List<SKFriend> friend_list = new List<SKFriend>();
         List<SKMsgWindow> window_list = new List<SKMsgWindow>();
+        List<SKGroupMsgWindow> g_window_list = new List<SKGroupMsgWindow>();
         public class SKFriend
         {
             public SKFriend(string _stu_num, string _name, string _comment)
@@ -584,6 +720,10 @@ namespace SKChat
                 }
             }
             public bool isCategory = false;
+            public override string ToString()
+            {
+                return name;
+            }
         }
     }
 }

@@ -38,8 +38,12 @@
             this.button_add = new System.Windows.Forms.Button();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.timer2 = new System.Windows.Forms.Timer(this.components);
+            this.RClick = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.删除好友ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.发起群聊ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.RClick.SuspendLayout();
             this.SuspendLayout();
             // 
             // textBox1
@@ -122,6 +126,28 @@
             this.timer2.Interval = 60000;
             this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
             // 
+            // RClick
+            // 
+            this.RClick.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.删除好友ToolStripMenuItem,
+            this.发起群聊ToolStripMenuItem});
+            this.RClick.Name = "RClick";
+            this.RClick.Size = new System.Drawing.Size(125, 48);
+            // 
+            // 删除好友ToolStripMenuItem
+            // 
+            this.删除好友ToolStripMenuItem.Name = "删除好友ToolStripMenuItem";
+            this.删除好友ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.删除好友ToolStripMenuItem.Text = "删除好友";
+            this.删除好友ToolStripMenuItem.Click += new System.EventHandler(this.删除好友ToolStripMenuItem_Click);
+            // 
+            // 发起群聊ToolStripMenuItem
+            // 
+            this.发起群聊ToolStripMenuItem.Name = "发起群聊ToolStripMenuItem";
+            this.发起群聊ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.发起群聊ToolStripMenuItem.Text = "发起群聊";
+            this.发起群聊ToolStripMenuItem.Click += new System.EventHandler(this.发起群聊ToolStripMenuItem_Click);
+            // 
             // SKMsgMainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -142,6 +168,7 @@
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.RClick.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -157,6 +184,9 @@
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Button button_add;
         private System.Windows.Forms.Timer timer2;
+        private System.Windows.Forms.ContextMenuStrip RClick;
+        private System.Windows.Forms.ToolStripMenuItem 删除好友ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 发起群聊ToolStripMenuItem;
        
     }
 }

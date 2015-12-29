@@ -54,6 +54,12 @@
     <Compile Include="SendFileDialog.Designer.cs">
       <DependentUpon>SendFileDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="SKGroupMsgWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SKGroupMsgWindow.Designer.cs">
+      <DependentUpon>SKGroupMsgWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="SKRichtextboxInserter.cs" />
     <Compile Include="SKAddFriendForm.cs">
       <SubType>Form</SubType>
@@ -107,6 +113,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="SKGroupMsgWindow.resx">
+      <DependentUpon>SKGroupMsgWindow.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="SKMsgMainForm.resx">
       <DependentUpon>SKMsgMainForm.cs</DependentUpon>
       <SubType>Designer</SubType>

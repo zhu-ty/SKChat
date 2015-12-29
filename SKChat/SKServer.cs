@@ -96,6 +96,21 @@ namespace DA32ProtocolCsharp
             return ret;
         }
 
+        public void abort(IPAddress from_ip_address)
+        {
+            server_lock.WaitOne();
+            for (int i = 0; i < server_communication_sockets.Count; i++)
+            {
+                if (server_communication_sockets[i] != null &&
+                    ((IPEndPoint)server_communication_sockets[i].RemoteEndPoint).Address.ToString() == from_ip_address.ToString())
+                {
+                    server_communication_sockets[i].Close();
+                    server_communication_sockets.Remove(server_communication_sockets[i]);
+                    i--;
+                }
+            }
+            server_lock.ReleaseMutex();
+        }
         /// <summary>
         /// 结束接听和所有的连接
         /// </summary>
@@ -137,6 +152,8 @@ namespace DA32ProtocolCsharp
             IPAddress this_ip = ((IPEndPoint)(c.RemoteEndPoint)).Address;
             while (true)
             {
+                try
+                {
                 server_lock.WaitOne();
                 if (!started)
                 {
@@ -148,8 +165,6 @@ namespace DA32ProtocolCsharp
                 }
                 server_lock.ReleaseMutex();
                 //TODO(_SHADOWK) 并未添加上级主动停止某个ServerSocket工作的代码。
-                try
-                {
                     byte[] head = new byte[head_byte_size];
                     int len = c.Receive(head);
                     if(len == 0)
@@ -164,7 +179,7 @@ namespace DA32ProtocolCsharp
                         if (len_recv != len_then || end_recv != end_byte_size || end[0] != end_2_bytes[0] || end[1] != end_2_bytes[1])
                             continue;
                         //SKMessage.mestype type;
-                        server_lock.WaitOne();
+                        //server_lock.WaitOne();
                         byte[] head_len = new byte[8];
                         Array.Copy(head, 2, head_len, 0, 8);
                         List<byte[]> to_connect = new List<byte[]>();
@@ -185,11 +200,13 @@ namespace DA32ProtocolCsharp
                             {
                                 if (eventarg.type == SKMsgInfoBase.mestype.EXIT)
                                 {
+                                    server_lock.WaitOne();
                                     server_communication_sockets.Remove(c);
+                                    server_lock.ReleaseMutex();
                                     if (c.Connected)
                                     {
                                         c.Close();
-                                        server_lock.ReleaseMutex();
+                                        //server_lock.ReleaseMutex();
                                         break;
                                     }
                                 }
@@ -237,17 +254,19 @@ namespace DA32ProtocolCsharp
                         //}
                         */
                         #endregion
-                        server_lock.ReleaseMutex();
+                       //server_lock.ReleaseMutex();
                     }
                 }
                 catch (Exception e)//超时或Socket已关闭
                 {
+                    //server_lock.ReleaseMutex();
                     server_lock.WaitOne();
                     SKMsgInfoBase exit_event = new SKMsgInfoBase();
                     exit_event.type = SKMsgInfoBase.mestype.EXIT;
                     exit_event.ip = this_ip;
                     ServerCall(this, exit_event);
                     server_lock.ReleaseMutex();
+                    
                     if(c != null)
                         c.Close();
                     break;

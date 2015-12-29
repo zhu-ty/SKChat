@@ -59,7 +59,7 @@ namespace SKChat
         }
         public void rev_file_invite(SKMsgInfoFileInvite e)
         {
-            DialogResult dr = MessageBox.Show("是否接收文件？\n文件名为" + e.file_name + "\n文件大小为：" + (e.size / 1024) + "KB", "接收文件确认", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult dr = MessageBox.Show("是否接收文件？\n文件名为" + e.file_name + "\n文件大小为：" + (e.size / 1024) + "KB\n若您正在接收上一文件，将会终止传输", "接收文件确认", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (dr != System.Windows.Forms.DialogResult.Yes)
             {
                 core.send_response(friend.stu_num, e.id + 1);
@@ -90,6 +90,8 @@ namespace SKChat
                         rev_file_full_name = sfd.FileName;
                         core.send_response(friend.stu_num, e.id);
                         add_text_rich1("\r\n你同意了接收文件请求，即将开始接收", Color.Blue);
+                        if (waiting_file_rev)
+                            core.rev_abort(friend.stu_num);
                         file_pieces.Clear();
                         waiting_file_rev = true;
                     }
@@ -167,7 +169,19 @@ namespace SKChat
                     label3.Visible = false;
                     progressBar1.Visible = false;
                 }
-
+                else if (file_pieces[file_pieces.Count - 1].num == e.max_fragment)
+                {
+                    add_text_rich1("\r\n文件接受失败！请再次发送", Color.Blue);
+                    core.send_response(friend.stu_num, 99999 - 1);
+                    waiting_file_rev = false;
+                    sw.Close();
+                    fs.Close();
+                    fs = null;
+                    sw = null;
+                    file_pieces.Clear();
+                    label3.Visible = false;
+                    progressBar1.Visible = false;
+                }
                 #region old_version
                 //if (e.this_fragment == 0)
                 //{
@@ -239,8 +253,14 @@ namespace SKChat
         {
             if (waiting_file_sen == true)
             {
-                MessageBox.Show("您正在等待发送或发送上一文件，请等待对方响应。");
-                return;
+                DialogResult drr = MessageBox.Show("您正在等待发送或发送上一文件，若现在再次发送将会中断上次发送，确定吗?","中断文件发送？",MessageBoxButtons.YesNo);
+                if (drr == System.Windows.Forms.DialogResult.No)
+                    return;
+                else
+                {
+                    waiting_file_sen = false;
+                    core.send_abort(friend.stu_num);
+                }
             }
             OpenFileDialog ofp = new OpenFileDialog();
             ofp.Title = "选择要发送的文件";
@@ -267,6 +287,23 @@ namespace SKChat
             {
                 waiting_file_sen = false;
                 MessageBox.Show(ee.Message);
+            }
+        }
+
+        private void SKMsgWindow_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (waiting_file_rev || waiting_file_sen)
+            {
+                DialogResult dr = MessageBox.Show("您正在发送或接收文件，退出窗口将导致文件传输失效，确定吗？", "传送文件时退出", MessageBoxButtons.YesNo);
+                if (dr == System.Windows.Forms.DialogResult.Yes)
+                {
+                    if (waiting_file_rev)
+                        core.rev_abort(friend.stu_num);
+                    if (waiting_file_sen)
+                        core.send_abort(friend.stu_num);
+                    waiting_file_rev = false;
+                    waiting_file_sen = false;
+                }
             }
         }
     }

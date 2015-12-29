@@ -232,10 +232,11 @@ namespace DA32ProtocolCsharp
                             s += "\"data\":{";
                             s += "\"name\":\"" + add_special_char(info_group_text.text_pack.name) + "\",";
                             s += "\"text\":\"" + add_special_char(info_group_text.text_pack.text) + "\",";
+                            s += "\"list_len\":" + info_group_text.stu_num_list.Count.ToString() + ",";
                             s += "\"stu_num_list\":[";
                             for (int i = 0; i < info_group_text.stu_num_list.Count - 1; i++)
-                                s += info_group_text.stu_num_list[i] + ",";
-                            s += info_group_text.stu_num_list[info_group_text.stu_num_list.Count - 1];
+                                s += "\""+info_group_text.stu_num_list[i] + "\",";
+                            s += "\"" + info_group_text.stu_num_list[info_group_text.stu_num_list.Count - 1]+"\"";
                             s += "]";
                             s += "},";
                             List<byte[]> con_byte = new List<byte[]>();
