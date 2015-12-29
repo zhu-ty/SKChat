@@ -780,12 +780,14 @@ namespace SKChat
 
                 //master.pictureBox1.Image = _head;
                 master.set_head(new Bitmap(_head, new Size(60, 60)));
+                if(me != null)
+                    me.Img = _head;
                 send_sync();
             }
         }
         Socket login_socket;
         Random random = new Random();
-        SKFriend me;
+        public SKFriend me = null;
 
         public List<SKFriend> friend_list = new List<SKFriend>();
         List<SKMsgWindow> window_list = new List<SKMsgWindow>();

@@ -181,8 +181,16 @@ namespace SKChat
             {
                 msg_core.refresh();
                 listBox1.Items.Clear();
+                SKMsgCore.SKFriend me_title = new SKMsgCore.SKFriend("我自己", "", "");
+                me_title.isCategory = true;
+                listBox1.Items.Add(me_title);
+                listBox1.Items.Add(msg_core.me);
+                SKMsgCore.SKFriend my_friend_title = new SKMsgCore.SKFriend("我的好友", "", "");
+                my_friend_title.isCategory = true;
+                listBox1.Items.Add(my_friend_title);
                 foreach (SKMsgCore.SKFriend f in msg_core.friend_list)
                 {
+                    if (f.stu_num != msg_core.my_stu_num)
                     listBox1.Items.Add(f);
                 }
             };
@@ -202,7 +210,11 @@ namespace SKChat
             {
                 if (listBox1.SelectedItems.Count > 0)
                 {
-                    if (listBox1.SelectedItems.Count > 1)
+                    int count_friends = 0;
+                    foreach(SKMsgCore.SKFriend f in listBox1.SelectedItems)
+                        if((!f.isCategory) && (f.stu_num != msg_core.my_stu_num))
+                            count_friends++;
+                    if (count_friends > 1)
                     {
                         发起群聊ToolStripMenuItem.Enabled = true;
                     }
@@ -234,7 +246,10 @@ namespace SKChat
             List<SKMsgCore.SKFriend> to_remove = new List<SKMsgCore.SKFriend>();
             foreach (SKMsgCore.SKFriend ff in listBox1.SelectedItems)
             {
-                to_remove.Add(ff);
+                if (ff.stu_num == msg_core.my_stu_num)
+                    MessageBox.Show("不能删除自己哦");
+                else
+                    to_remove.Add(ff);
             }
             //SKMsgCore.SKFriend f = (SKMsgCore.SKFriend)listBox1.SelectedItem;
             //msg_core.remove_friend(f);
