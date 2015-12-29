@@ -34,7 +34,7 @@
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\自32协议\DA32ProtocolC#\DA32ProtocolCsharp\DA32ProtocolCsharp\Net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>Net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -151,6 +151,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\1.jpg" />
+    <None Include="Resources\bg.jpg" />
     <None Include="Resources\nomarl_head.jpg" />
     <None Include="Resources\head_normal.bmp" />
   </ItemGroup>

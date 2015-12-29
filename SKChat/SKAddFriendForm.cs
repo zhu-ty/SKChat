@@ -13,6 +13,7 @@ namespace SKChat
     public partial class SKAddFriendForm : Form
     {
         public string stu_num = string.Empty;
+        private Point offset;
         public SKAddFriendForm()
         {
             InitializeComponent();
@@ -56,6 +57,21 @@ namespace SKChat
         {
             textBox1.Focus();
             textBox1.SelectAll();
+        }
+
+        private void SKAddFriendForm_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (MouseButtons.Left != e.Button) return;
+
+            Point cur = this.PointToScreen(e.Location);
+            offset = new Point(cur.X - this.Left, cur.Y - this.Top);
+        }
+
+        private void SKAddFriendForm_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (MouseButtons.Left != e.Button) return;
+            Point cur = MousePosition;
+            this.Location = new Point(cur.X - offset.X, cur.Y - offset.Y);
         }
     }
 }

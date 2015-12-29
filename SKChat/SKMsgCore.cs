@@ -32,6 +32,7 @@ namespace SKChat
             SKServer.ListenPorts = int.Parse(_stu_num.Substring(_stu_num.Length - 4));
             servers.start_listening();
             head = Properties.Resources.nomarl_head;
+            no_head = false;
             file_init();
             starting = false;
         }
@@ -741,7 +742,7 @@ namespace SKChat
         public string _my_name = "HelloWorld";
         public string _my_comment = "生于忧患，死于安乐";
         Bitmap _head = null;
-
+        bool no_head = true;
         public string my_name
         {
             get
@@ -776,10 +777,15 @@ namespace SKChat
             }
             set
             {
+
+
                 _head = new Bitmap(value, new Size(10, 10));
 
                 //master.pictureBox1.Image = _head;
-                master.set_head(new Bitmap(_head, new Size(60, 60)));
+                if (no_head)
+                    master.set_head(new Bitmap(value, new Size(60, 60)));
+                else
+                    master.set_head(new Bitmap(_head, new Size(60, 60)));
                 if(me != null)
                     me.Img = _head;
                 send_sync();

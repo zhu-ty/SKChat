@@ -29,6 +29,8 @@ namespace SKChat
             login_socket = _login_socket;
             welcome = _welcome;
             InitializeComponent();
+            this.Opacity = 0;
+            timer1.Start();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -91,6 +93,13 @@ namespace SKChat
         private void LoginForm_FormClosed(object sender, FormClosedEventArgs e)
         {
 
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            this.Opacity += 0.1;
+            if (this.Opacity == 1)
+                timer1.Stop();
         }
     }
 }

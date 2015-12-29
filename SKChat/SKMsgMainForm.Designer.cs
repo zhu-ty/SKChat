@@ -57,7 +57,7 @@
             this.textBox1.Size = new System.Drawing.Size(145, 26);
             this.textBox1.TabIndex = 1;
             this.textBox1.Text = "HelloWorld";
-            this.textBox1.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.textBox1.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // statusStrip1
@@ -93,7 +93,7 @@
             this.textBox2.Size = new System.Drawing.Size(316, 26);
             this.textBox2.TabIndex = 3;
             this.textBox2.Text = "生于忧患，死于安乐";
-            this.textBox2.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.textBox2.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
             // 
             // button_add
@@ -153,6 +153,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(406, 515);
             this.Controls.Add(this.button_add);
             this.Controls.Add(this.textBox2);
@@ -163,6 +164,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "SKMsgMainForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "SKChat";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.SKMsgMainForm_FormClosed);
             this.Load += new System.EventHandler(this.SKMsgMainForm_Load);

@@ -56,8 +56,9 @@
             this.ClientSize = new System.Drawing.Size(395, 70);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.label1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "SendFileDialog";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "发送文件进度";
             this.ResumeLayout(false);
             this.PerformLayout();
