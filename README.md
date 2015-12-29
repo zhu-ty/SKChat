@@ -1,5 +1,5 @@
-# DA32ProtocolCsharp
-A base protocol of Computer Network homework in C#(.Net 4.5).
+# SKChat
+A homework for Computer Network in C#(.Net 4.5).
 
 Edit and build in VS2013.
 
