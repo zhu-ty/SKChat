@@ -20,7 +20,7 @@ namespace DA32ProtocolCsharp
         /// <summary>
         /// 连接最长等待时间
         /// </summary>
-        public const int max_connect_senconds = 10;
+        public const int max_connect_senconds = 1;
         /// <summary>
         /// Name最大长度
         /// </summary>
@@ -316,8 +316,9 @@ namespace DA32ProtocolCsharp
             if (c_now == null && info.type != SKMsgInfoBase.mestype.EXIT)
             {
                 c_now = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                c_now.SendBufferSize = SKServer.max_byte_once;
                 IAsyncResult connect_result = c_now.BeginConnect(target_ip, int.Parse(tar_stu_num.Substring(tar_stu_num.Length - 4)), null, null);
-                connect_result.AsyncWaitHandle.WaitOne(max_connect_senconds * 1000);//10s
+                connect_result.AsyncWaitHandle.WaitOne(max_connect_senconds * 1000);//1s
                 if (!connect_result.IsCompleted)
                 {
                     c_now.Close();
@@ -387,6 +388,7 @@ namespace DA32ProtocolCsharp
                 SendFileDialog sfd = new SendFileDialog();
                 ip_with_file_path ip_and_file_path = (ip_with_file_path)this_object;
                 Socket send_socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                send_socket.SendBufferSize = SKServer.max_byte_once;
                 IAsyncResult connect_result = send_socket.BeginConnect(ip_and_file_path.ip,int.Parse(ip_and_file_path.tar_stu_num.Substring(ip_and_file_path.tar_stu_num.Length - 4)), null, null);
                 connect_result.AsyncWaitHandle.WaitOne(max_connect_senconds * 1000);//10s
                 if (!connect_result.IsCompleted)

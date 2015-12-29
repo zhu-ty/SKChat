@@ -37,11 +37,20 @@ namespace SKChat
             if (friend.Img != null)
                 pictureBox1.Image = friend.Img;
             this.Visible = true;
+            file_init();
         }
         public void rev_text(SKMsgInfoText t)
         {
             Action<SKMsgInfoText> rich1act = (x) =>
             {
+                if (x.text_pack.text == "\\抖一抖")
+                {
+                    if (richTextBox1.Text != string.Empty)
+                        richTextBox1.AppendText("\r\n");
+                    add_text_rich1("你被他抖了一抖！", Color.Blue);
+                    shake();
+                    return;
+                }
                 if (richTextBox1.Text != string.Empty)
                     richTextBox1.AppendText("\r\n");
                 int c1 = richTextBox1.Text.Length;
@@ -249,6 +258,26 @@ namespace SKChat
             richTextBox1.SelectionStart = richTextBox1.Text.Length;
             richTextBox1.ScrollToCaret();
         }
+        private bool get_text_rich1(int lines,out string line, out Color c)
+        {
+            if (lines >= richTextBox1.Lines.Length)
+            {
+                line = null;
+                c = Color.Black;
+                return false;
+            }
+            else
+            {
+                line = richTextBox1.Lines[lines];
+                int line_c = richTextBox1.GetFirstCharIndexFromLine(lines);
+                richTextBox1.Select(line_c,1);
+                c = richTextBox1.SelectionColor;
+                richTextBox1.Select(0, 0);
+                richTextBox1.SelectionStart = richTextBox1.Text.Length;
+                richTextBox1.ScrollToCaret();
+                return true;
+            }
+        }
         private void button2_Click(object sender, EventArgs e)
         {
             if (waiting_file_sen == true)
@@ -304,7 +333,12 @@ namespace SKChat
                     waiting_file_rev = false;
                     waiting_file_sen = false;
                 }
+                else
+                {
+                    e.Cancel = true;
+                }
             }
+            file_save();
         }
         bool delete_enter = false;
         private void richTextBox2_KeyDown(object sender, KeyEventArgs e)
@@ -323,6 +357,101 @@ namespace SKChat
                 richTextBox2.Text = "";
                 delete_enter = false;
             }
+        }
+
+        private void shake()
+        {
+            Point p = new Point(this.Location.X, this.Location.Y);
+            Random r = new Random();
+            for (int i = 0; i < 20; i++)
+            {
+                this.Location = new Point(p.X + r.Next(-10, 10), p.Y + r.Next(-10, 10));
+                System.Threading.Thread.Sleep(5);
+                this.Location = p;
+                System.Threading.Thread.Sleep(5);
+            }
+
+        }
+
+        private void file_init(bool show_last_mes = true)
+        {
+            string directory = System.Environment.CurrentDirectory + "\\Data\\";
+            directory += core.my_stu_num + "\\" + friend.stu_num;
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+                return;
+            }
+            FileStream fs = new FileStream(directory + "\\chat.list", FileMode.OpenOrCreate);
+            StreamReader sr = new StreamReader(fs);
+            bool have_something = false;
+            while (!sr.EndOfStream)
+            {
+                have_something = true;
+                string line = sr.ReadLine();
+                if (line[0] == 'b')
+                    add_text_rich1(line.Substring(1)+"\r\n", Color.Blue);
+                else if (line[0] == 'n')
+                    add_text_rich1(line.Substring(1) + "\r\n", Color.Black);
+                else if (line[0] == 'g')
+                    add_text_rich1(line.Substring(1) + "\r\n", Color.Green);
+            }
+            if(have_something && show_last_mes)
+                add_text_rich1("以上为前一次的聊天记录", Color.Blue);
+            sr.Close();
+            fs.Close();
+        }
+        private void file_save()
+        {
+            string directory = System.Environment.CurrentDirectory + "\\Data\\";
+            directory += core.my_stu_num + "\\" + friend.stu_num;
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+            if(File.Exists(directory + "\\chat.list"))
+                File.Delete(directory + "\\chat.list");
+
+            FileStream fs = new FileStream(directory + "\\chat.list", FileMode.OpenOrCreate);
+            StreamWriter sw = new StreamWriter(fs);
+            string new_line = "";
+            Color c;
+            int i = 0;
+            while (get_text_rich1(i, out new_line, out c))
+            {
+                if (c == Color.Blue)
+                    sw.WriteLine("b" + new_line);
+                else if (c == Color.Green)
+                    sw.WriteLine("g" + new_line);
+                else
+                    sw.WriteLine("n" + new_line);
+                i++;
+            }
+            sw.Close();
+            fs.Close();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            core.send_text(friend.stu_num, "\\抖一抖");
+            if (richTextBox1.Text != string.Empty)
+                richTextBox1.AppendText("\r\n");
+            add_text_rich1("你抖了一抖他！", Color.Blue);
+            richTextBox2.Text = "";
+            richTextBox2.Focus();
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            FontDialog fd = new FontDialog();
+            fd.ShowDialog();
+            file_save();
+            richTextBox1.Font = fd.Font;
+            richTextBox1.Clear();
+            file_init(false);
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            richTextBox1.Clear();
         }
     }
 }

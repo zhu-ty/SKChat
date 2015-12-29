@@ -27,7 +27,7 @@ namespace DA32ProtocolCsharp
         /// <summary>
         /// 最大单次收取字节数
         /// </summary>
-        public const int max_byte_once = 10000000;
+        public const int max_byte_once = 500000;
         /// <summary>
         /// 包前缀长度
         /// </summary>
@@ -78,6 +78,7 @@ namespace DA32ProtocolCsharp
                                 break;
                             }
                         }
+                        server_listen_socket.ReceiveBufferSize = max_byte_once;
                         server_listen_socket.Listen(max_connection);
                         started = true;
                         Thread listenthread = new Thread(main_listener);
@@ -85,7 +86,7 @@ namespace DA32ProtocolCsharp
                         listenthread.Start();
                         ret = true;
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         started = false;
                         ret = false;

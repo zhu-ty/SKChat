@@ -71,7 +71,7 @@ namespace SKChat
                 textBox1.Text = textBox1.Text.Substring(0, 20);
             if (msg_core != null)
             {
-                msg_core._my_name = textBox1.Text;
+                msg_core.my_name = textBox1.Text;
                 refresh();
             }
         }
@@ -97,7 +97,7 @@ namespace SKChat
                 textBox2.Text = textBox2.Text.Substring(0, 30);
             if (msg_core != null)
             {
-                msg_core._my_comment = textBox2.Text;
+                msg_core.my_comment = textBox2.Text;
                 refresh();
             }
         }
@@ -130,7 +130,7 @@ namespace SKChat
         /// <param name="img"></param>
         public SKMsgCore.SKFriend add_friend(string id, string remarks, string comment, Bitmap img)
         {
-            SKMsgCore.SKFriend f = msg_core.add_friend(id, remarks, comment);
+            SKMsgCore.SKFriend f = msg_core.add_friend(id, remarks, comment, img);
             refresh();
             return f;
         }
@@ -165,6 +165,12 @@ namespace SKChat
         public void set_comment(string __comment)
         {
             textBox2.Text = __comment;
+        }
+
+        public void set_head(Bitmap bm)
+        {
+            if(bm!=null)
+                pictureBox1.Image = bm;
         }
         /// <summary>
         /// 刷新（会调用内核刷新）
@@ -247,6 +253,25 @@ namespace SKChat
                 _friends_.Add(fi);
             }
             msg_core.new_g_window(_friends_);
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Title = "设置头像";
+            ofd.Filter = "图像文件|*.jpg;*.png;*.bmp";
+            DialogResult dr = ofd.ShowDialog();
+            if (dr != System.Windows.Forms.DialogResult.OK)
+                return;
+            try
+            {
+                Bitmap b = new Bitmap(ofd.FileName);
+                msg_core.head = b;
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("设置头像出错");
+            }
         }
     }
 

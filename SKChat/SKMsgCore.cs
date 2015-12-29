@@ -31,6 +31,7 @@ namespace SKChat
             servers.ServerCall += receive_mes;
             SKServer.ListenPorts = int.Parse(_stu_num.Substring(_stu_num.Length - 4));
             servers.start_listening();
+            head = Properties.Resources.nomarl_head;
             file_init();
             starting = false;
         }
@@ -96,6 +97,18 @@ namespace SKChat
         }
         public void refresh()
         {
+            //login_socket.Send(Encoding.Default.GetBytes(my_stu_num + "_net2015"));
+            //try
+            //{
+            //    int tmp = login_socket.ReceiveTimeout;
+            //    login_socket.ReceiveTimeout = 100;
+            //    byte[] tmp2 = new byte[3];
+            //    login_socket.Receive(tmp2);
+            //    login_socket.ReceiveTimeout = tmp;
+            //}
+            //catch (Exception)
+            //{ 
+            //}
             for (int i = 0; i < window_list.Count; i++)
             {
                 SKMsgWindow msg_window = window_list[i];
@@ -116,7 +129,15 @@ namespace SKChat
                     login_socket.Send(Encoding.Default.GetBytes("q" + f.stu_num));
                     byte[] receive_buffer = new byte[100];
                     int len = login_socket.Receive(receive_buffer);
-                    IPAddress ip = IPAddress.Parse(Encoding.Default.GetString(receive_buffer,0,len));
+                    int i = 0;
+                    for (i = 0; i < len; i++)
+                        if (receive_buffer[i] > ((byte)'0' - 1) && receive_buffer[i] < ((byte)'9' + 1))
+                            break;
+                    int j = i;
+                    for (j = i; j < len; j++)
+                        if ((receive_buffer[j] != (byte)'.') && (receive_buffer[i] <= ((byte)'0' - 1) || receive_buffer[i] >= ((byte)'9' + 1)))
+                            break;
+                    IPAddress ip = IPAddress.Parse(Encoding.Default.GetString(receive_buffer, i, j - i));
                     f.ip = ip;
                     f.online = true;
                     if (f.stu_num == my_stu_num)
@@ -352,6 +373,33 @@ namespace SKChat
                     sgmw.add_text(msg_info as SKMsgInfoGroupText);
                 }
                 #endregion
+                #region SYNC
+                else if (msg_info.type == SKMsgInfoBase.mestype.SYNC)
+                {
+                    SKMsgInfoSync msg_sync = (SKMsgInfoSync)msg_info;
+                    string this_stu_num = "";
+                    SKFriend ff = null;
+                    foreach (SKFriend f in friend_list)
+                    {
+                        if (f != null && f.ip != null && f.stu_num == msg_sync.stu_num)
+                        {
+                            this_stu_num = f.stu_num;
+                            ff = f;
+                            break;
+                        }
+                    }
+                    if (this_stu_num == "")
+                    {
+                        SKFriend newf = master.add_friend(msg_sync.stu_num, msg_sync.name, msg_sync.comment, msg_sync.head_60_60);
+                    }
+                    else
+                    {
+                        ff.name = msg_sync.name;
+                        ff.comment = msg_sync.comment;
+                        ff.Img = msg_sync.head_60_60;
+                    }
+                }
+                #endregion
                 master.refresh();
             };
             master.BeginInvoke(receive_act, _msg_info);
@@ -511,6 +559,23 @@ namespace SKChat
                 if (f.online && f.stu_num != my_stu_num)
                     clients.SendNotFile(sigt, f.ip, f.stu_num);
         }
+        public void send_sync()
+        {
+            refresh();
+            SKMsgInfoSync info_sync = new SKMsgInfoSync();
+            info_sync.head_60_60 = head;
+            info_sync.id =0;
+            info_sync.comment = my_comment;
+            info_sync.name = my_name;
+            info_sync.timestamp = DateTime.Now;
+            info_sync.type = SKMsgInfoBase.mestype.SYNC;
+            info_sync.stu_num = my_stu_num;
+            foreach (SKFriend f in friend_list)
+            {
+                if (f.stu_num != my_stu_num && f.online)
+                    clients.SendNotFile(info_sync, f.ip, f.stu_num);
+            }
+        }
         /// <summary>
         /// 只能被MainForm调用 否则会不同步
         /// </summary>
@@ -518,14 +583,14 @@ namespace SKChat
         /// <param name="add_stu_name"></param>
         /// <param name="add_stu_comment"></param>
         /// <returns></returns>
-        public SKFriend add_friend(string add_stu_num, string add_stu_name = "", string add_stu_comment = "")
+        public SKFriend add_friend(string add_stu_num, string add_stu_name = "", string add_stu_comment = "",Bitmap _image = null)
         {
             foreach (SKFriend ff in friend_list)
             {
                 if (ff.stu_num == add_stu_num)
                     return ff;
             }
-            SKFriend f = new SKFriend(add_stu_num, add_stu_name, add_stu_comment);
+            SKFriend f = new SKFriend(add_stu_num, add_stu_name, add_stu_comment,_image);
             friend_list.Add(f);
             if(!starting)
                 master.refresh();  
@@ -562,6 +627,9 @@ namespace SKChat
             my_info_stream.Close();
             me = add_friend(my_stu_num, my_name, my_comment);
 
+            if (File.Exists(directory + "\\head.bmp"))
+                head = new Bitmap(directory + "\\head.bmp");
+
             FileStream friend_list_stream = new FileStream(directory + "\\friend.list", FileMode.OpenOrCreate);
             StreamReader sr = new StreamReader(friend_list_stream);
             while (!sr.EndOfStream)
@@ -570,7 +638,20 @@ namespace SKChat
                 string __name = sr.ReadLine();
                 string __comment = sr.ReadLine();
                 //friend_list.Add(new SKFriend(__stu_num, __name, __comment));
-                add_friend(__stu_num, __name, __comment);
+                string directory2 = directory + "\\" + __stu_num;
+                bool pic = false;
+                if (Directory.Exists(directory2) && File.Exists(directory2 + "\\head.bmp"))
+                {
+                    try
+                    {
+                        Bitmap b = new Bitmap(directory2 + "\\head.bmp");
+                        add_friend(__stu_num, __name, __comment, b);
+                        pic = true;
+                    }
+                    catch (Exception) { }
+                }
+                if(!pic)
+                    add_friend(__stu_num, __name, __comment);
             }
             sr.Close();
             friend_list_stream.Close();
@@ -594,9 +675,20 @@ namespace SKChat
                     sw.WriteLine(friend_list[i].stu_num);
                     sw.WriteLine(friend_list[i]._name);
                     sw.WriteLine(friend_list[i]._comment);
+                    if (friend_list[i].Img != null)
+                    {
+                        string directory2 = directory + "\\" + friend_list[i].stu_num;
+                        if (!Directory.Exists(directory2))
+                            Directory.CreateDirectory(directory2);
+                        if (File.Exists(directory2 + "\\head.bmp"))
+                            File.Delete(directory2 + "\\head.bmp");
+                        friend_list[i].Img.Save(directory2 + "\\head.bmp");
+                    }
                 }
                 sw.Close();
                 friend_list_stream.Close();
+
+                head.Save(directory + "\\head.bmp");
 
                 FileStream my_info_stream = new FileStream(directory + "\\myself.info", FileMode.OpenOrCreate);
                 StreamWriter sw2 = new StreamWriter(my_info_stream);
@@ -645,9 +737,11 @@ namespace SKChat
         public SKMsgMainForm master;
         SKClient clients = new SKClient();
         SKServer servers = new SKServer();
-        string my_stu_num;
+        public string my_stu_num;
         public string _my_name = "HelloWorld";
         public string _my_comment = "生于忧患，死于安乐";
+        Bitmap _head = null;
+
         public string my_name
         {
             get
@@ -658,6 +752,7 @@ namespace SKChat
             {
                 _my_name = value;
                 master.set_name(value);
+                send_sync();
             }
         }
         public string my_comment
@@ -670,6 +765,22 @@ namespace SKChat
             {
                 _my_comment = value;
                 master.set_comment(value);
+                send_sync();
+            }
+        }
+        public Bitmap head
+        {
+            get
+            {
+                return _head;
+            }
+            set
+            {
+                _head = new Bitmap(value, new Size(10, 10));
+
+                //master.pictureBox1.Image = _head;
+                master.set_head(new Bitmap(_head, new Size(60, 60)));
+                send_sync();
             }
         }
         Socket login_socket;
@@ -681,11 +792,12 @@ namespace SKChat
         List<SKGroupMsgWindow> g_window_list = new List<SKGroupMsgWindow>();
         public class SKFriend
         {
-            public SKFriend(string _stu_num, string _name, string _comment)
+            public SKFriend(string _stu_num, string _name, string _comment,Bitmap img = null)
             {
                 stu_num = _stu_num;
                 name = _name;
                 comment = _comment;
+                Img = img;
             }
             public string stu_num = "";
             public string _name = "";

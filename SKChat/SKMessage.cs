@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.Security.Cryptography;
 using SKChat;
+using System.Drawing;
 
 namespace DA32ProtocolCsharp
 {
@@ -143,6 +144,21 @@ namespace DA32ProtocolCsharp
                             info_text.timestamp = DateTime.ParseExact(time_s, "yyyy.MM.dd HH:mm:ss", null);
                             info_text.text_pack.name = (string)json_object["data"]["name"];
                             info_text.text_pack.text = (string)json_object["data"]["text"];
+                            break;
+                        }
+                    case SKMsgInfoBase.mestype.SYNC:
+                        {
+                            info_base = new SKMsgInfoSync();
+                            info_base.stu_num = stu_num;
+                            info_base.id = id;
+                            info_base.type = type;
+                            info_base.verified = true;
+                            //暂时关闭了md5校验……
+                            info_base.timestamp = DateTime.ParseExact(time_s, "yyyy.MM.dd HH:mm:ss", null);
+                            SKMsgInfoSync info_sync = (SKMsgInfoSync)info_base;
+                            info_sync.comment = (string)json_object["data"]["comment"];
+                            info_sync.name = (string)json_object["data"]["name"];
+                            info_sync.head_60_60 = from_base64((string)json_object["data"]["head"]);
                             break;
                         }
                     default:
@@ -290,6 +306,24 @@ namespace DA32ProtocolCsharp
                             con_byte.Add(Encoding.UTF8.GetBytes(info_text.timestamp.ToString("yyyy.MM.dd HH:mm:ss")));
                             con_byte.Add(Encoding.UTF8.GetBytes(info_text.text_pack.name));
                             con_byte.Add(Encoding.UTF8.GetBytes(info_text.text_pack.text));
+                            s += "\"md5\":\"" + getmd5(byte_connect(con_byte)) + "\"";
+                            s += "}";
+                            ret = true;
+                            break;
+                        }
+                    case SKMsgInfoBase.mestype.SYNC:
+                        {
+                            SKMsgInfoSync info_sync = (SKMsgInfoSync)info_base;
+                            s += "\"type\":\"sync\",";
+                            s += "\"data\":{";
+                            s += "\"name\":\"" + info_sync.name + "\",";
+                            s += "\"comment\":\"" + info_sync.comment + "\",";
+                            s += "\"head\":\"" + to_base64(info_sync.head_60_60) + "\"";
+                            s += "},";
+                            List<byte[]> con_byte = new List<byte[]>();
+                            con_byte.Add(BitConverter.GetBytes(info_base.id));
+                            con_byte.Add(Encoding.UTF8.GetBytes("sync"));
+                            con_byte.Add(Encoding.UTF8.GetBytes(info_base.timestamp.ToString("yyyy.MM.dd HH:mm:ss")));
                             s += "\"md5\":\"" + getmd5(byte_connect(con_byte)) + "\"";
                             s += "}";
                             ret = true;
@@ -550,6 +584,25 @@ namespace DA32ProtocolCsharp
         }
         */
         #endregion
+
+        private Bitmap from_base64(string s)
+        {
+            byte[] bitmap_data = Convert.FromBase64String(s);
+            MemoryStream ms = new MemoryStream(bitmap_data);
+            Bitmap ret_tmp = (Bitmap)Bitmap.FromStream(ms);
+            Bitmap ret = new Bitmap(ret_tmp);
+            ms.Close();
+            return ret;
+        }
+        private string to_base64(Bitmap b)
+        {
+            MemoryStream ms = new MemoryStream();
+            b.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
+            byte[] bitmap_data = ms.GetBuffer();
+            ms.Close();
+            string ret = Convert.ToBase64String(bitmap_data);
+            return ret;
+        }
         private SKMsgInfoBase.mestype get_type(string s)
         {
             if (s.ToLower() == "text")
@@ -566,6 +619,8 @@ namespace DA32ProtocolCsharp
                 return SKMsgInfoBase.mestype.FILE_INVITE;
             else if (s.ToLower() == "friend_invite")
                 return SKMsgInfoBase.mestype.FRIEND_INVITE;
+            else if (s.ToLower() == "sync")
+                return SKMsgInfoBase.mestype.SYNC;
             else
                 return SKMsgInfoBase.mestype.UNDEFINED;
         }

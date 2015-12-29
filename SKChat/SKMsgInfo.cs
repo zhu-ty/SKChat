@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net;
+using System.Drawing;
 
 namespace SKChat
 {
@@ -18,6 +19,7 @@ namespace SKChat
             FILE,
             FILE_INVITE,
             FRIEND_INVITE,
+            SYNC,
             UNDEFINED
         }
         public mestype type = mestype.UNDEFINED;
@@ -44,5 +46,11 @@ namespace SKChat
     {
         public int size;
         public string file_name;
+    }
+    public class SKMsgInfoSync : SKMsgInfoBase
+    {
+        public string name;
+        public Bitmap head_60_60;
+        public string comment;
     }
 }

@@ -101,7 +101,7 @@
             this.button_add.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.button_add.BackgroundImage = global::SKChat.Properties.Resources._1;
+            this.button_add.BackgroundImage = global::SKChat.Properties.Resources._11;
             this.button_add.Location = new System.Drawing.Point(229, 12);
             this.button_add.Name = "button_add";
             this.button_add.Size = new System.Drawing.Size(26, 26);
@@ -119,6 +119,7 @@
             this.pictureBox1.Size = new System.Drawing.Size(60, 60);
             this.pictureBox1.TabIndex = 0;
             this.pictureBox1.TabStop = false;
+            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
             // 
             // timer2
             // 
