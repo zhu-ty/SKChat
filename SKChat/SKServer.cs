@@ -19,7 +19,7 @@ namespace DA32ProtocolCsharp
         /// <summary>
         /// 连接监听端口
         /// </summary>
-        public const int ListenPort = 3232;
+        public static int ListenPorts = 3232;
         /// <summary>
         /// 最大同时连接数量
         /// </summary>
@@ -74,7 +74,7 @@ namespace DA32ProtocolCsharp
                         {
                             if (ip.AddressFamily.Equals(AddressFamily.InterNetwork))
                             {
-                                server_listen_socket.Bind(new IPEndPoint(ip, ListenPort));
+                                server_listen_socket.Bind(new IPEndPoint(ip, ListenPorts));
                                 break;
                             }
                         }
@@ -154,24 +154,24 @@ namespace DA32ProtocolCsharp
             {
                 try
                 {
-                server_lock.WaitOne();
-                if (!started)
-                {
-                    server_communication_sockets.Remove(c);
-                    if(c != null)
-                        c.Close();
+                    server_lock.WaitOne();
+                    if (!started)
+                    {
+                        server_communication_sockets.Remove(c);
+                        if (c != null)
+                            c.Close();
+                        server_lock.ReleaseMutex();
+                        break;
+                    }
                     server_lock.ReleaseMutex();
-                    break;
-                }
-                server_lock.ReleaseMutex();
-                //TODO(_SHADOWK) 并未添加上级主动停止某个ServerSocket工作的代码。
+                    //TODO(_SHADOWK) 并未添加上级主动停止某个ServerSocket工作的代码。
                     byte[] head = new byte[head_byte_size];
                     int len = c.Receive(head);
-                    if(len == 0)
-                        throw(new Exception());
+                    if (len == 0)
+                        throw (new Exception());
                     if (len == head_byte_size && head[0] == head_2_bytes[0] && head[1] == head_2_bytes[1])
                     {
-                        int len_then = BitConverter.ToInt32(head, 2) + BitConverter.ToInt32(head, 6)- head_byte_size - end_byte_size;
+                        int len_then = BitConverter.ToInt32(head, 2) + BitConverter.ToInt32(head, 6) - head_byte_size - end_byte_size;
                         byte[] then = new byte[len_then];
                         byte[] end = new byte[end_byte_size];
                         int len_recv = c.Receive(then);
@@ -254,7 +254,7 @@ namespace DA32ProtocolCsharp
                         //}
                         */
                         #endregion
-                       //server_lock.ReleaseMutex();
+                        //server_lock.ReleaseMutex();
                     }
                 }
                 catch (Exception e)//超时或Socket已关闭
@@ -266,8 +266,8 @@ namespace DA32ProtocolCsharp
                     exit_event.ip = this_ip;
                     ServerCall(this, exit_event);
                     server_lock.ReleaseMutex();
-                    
-                    if(c != null)
+
+                    if (c != null)
                         c.Close();
                     break;
                 }

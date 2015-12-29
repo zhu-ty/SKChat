@@ -306,5 +306,23 @@ namespace SKChat
                 }
             }
         }
+        bool delete_enter = false;
+        private void richTextBox2_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Control && e.KeyValue == 13)
+            {
+                button1_Click(this,new EventArgs());
+                delete_enter = true;
+            }
+        }
+
+        private void richTextBox2_TextChanged(object sender, EventArgs e)
+        {
+            if (delete_enter)
+            {
+                richTextBox2.Text = "";
+                delete_enter = false;
+            }
+        }
     }
 }

@@ -29,6 +29,7 @@ namespace SKChat
             login_socket = _login_socket;
             login_socket.ReceiveTimeout = 100;
             servers.ServerCall += receive_mes;
+            SKServer.ListenPorts = int.Parse(_stu_num.Substring(_stu_num.Length - 4));
             servers.start_listening();
             file_init();
             starting = false;
@@ -118,6 +119,11 @@ namespace SKChat
                     IPAddress ip = IPAddress.Parse(Encoding.Default.GetString(receive_buffer,0,len));
                     f.ip = ip;
                     f.online = true;
+                    if (f.stu_num == my_stu_num)
+                    {
+                        f.name = master.get_name();
+                        f.comment = master.get_comment();
+                    }
                 }
                 catch
                 {
@@ -137,7 +143,7 @@ namespace SKChat
                     SKFriend ff = null;
                     foreach (SKFriend f in friend_list)
                     {
-                        if (f != null && f.ip != null && f.ip.ToString() == msg_info.ip.ToString())
+                        if (f != null && f.ip != null && f.stu_num == msg_info.stu_num)
                         {
                             this_stu_num = f.stu_num;
                             f.name = (msg_info as SKMsgInfoText).text_pack.name;
@@ -181,7 +187,7 @@ namespace SKChat
                     SKFriend ff = null;
                     foreach (SKFriend f in friend_list)
                     {
-                        if (f != null && f.ip != null && f.ip.ToString() == msg_info.ip.ToString())
+                        if (f != null && f.ip != null && f.stu_num == msg_info.stu_num)
                         {
                             this_stu_num = f.stu_num;
                             ff = f;
@@ -224,7 +230,7 @@ namespace SKChat
                     SKFriend ff = null;
                     foreach (SKFriend f in friend_list)
                     {
-                        if (f != null && f.ip != null && f.ip.ToString() == msg_info.ip.ToString())
+                        if (f != null && f.ip != null && f.stu_num == msg_info.stu_num)
                         {
                             this_stu_num = f.stu_num;
                             ff = f;
@@ -262,7 +268,7 @@ namespace SKChat
                     SKFriend ff = null;
                     foreach (SKFriend f in friend_list)
                     {
-                        if (f != null && f.ip != null && f.ip.ToString() == msg_info.ip.ToString())
+                        if (f != null && f.ip != null && f.stu_num == msg_info.stu_num)
                         {
                             this_stu_num = f.stu_num;
                             ff = f;
@@ -408,7 +414,7 @@ namespace SKChat
                 sit.id = random.Next(0, 65535);
                 sit.type = SKMsgInfoBase.mestype.TEXT;
                 sit.timestamp = DateTime.Now;
-                clients.SendNotFile(sit, tar_ip);
+                clients.SendNotFile(sit, tar_ip,target_stu_num);
             }
         }
         public bool send_file_invite(string target_stu_num,string file, int file_invite_id = 99999)
@@ -429,7 +435,7 @@ namespace SKChat
                     if(len > int.MaxValue)
                         throw new Exception("文件不能大于2G");
                     smifi.size = (int)len;
-                    return clients.SendNotFile(smifi,tar_ip);
+                    return clients.SendNotFile(smifi,tar_ip,target_stu_num);
                 }
                 catch (Exception)
                 {
@@ -451,7 +457,7 @@ namespace SKChat
                     sib.stu_num = my_stu_num;
                     sib.timestamp = DateTime.Now;
                     sib.type = SKMsgInfoBase.mestype.RESPONSE;
-                    return clients.SendNotFile(sib,tar_ip);
+                    return clients.SendNotFile(sib,tar_ip,target_stu_num);
                 }
                 catch (Exception)
                 {
@@ -466,7 +472,7 @@ namespace SKChat
             IPAddress tar_ip = find_ip(target_stu_num);
             if (tar_ip != null)
             {
-                clients.SendFile(tar_ip, file_full_path, my_stu_num);
+                clients.SendFile(tar_ip, file_full_path, my_stu_num,target_stu_num);
             }
             return false;
         }
@@ -500,11 +506,10 @@ namespace SKChat
             sigt.type = SKMsgInfoBase.mestype.GROUP_TEXT;
             sigt.timestamp = DateTime.Now;
             foreach (SKFriend f in fs)
-            {
                 sigt.stu_num_list.Add(f.stu_num);
+            foreach (SKFriend f in fs)
                 if (f.online && f.stu_num != my_stu_num)
-                    clients.SendNotFile(sigt, f.ip);
-            }
+                    clients.SendNotFile(sigt, f.ip, f.stu_num);
         }
         /// <summary>
         /// 只能被MainForm调用 否则会不同步
@@ -538,7 +543,15 @@ namespace SKChat
             directory += my_stu_num;
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
-
+            //if (!File.Exists(directory + "\\myself.info"))
+            //{
+            //    FileStream my_info_stream22 = new FileStream(directory + "\\myself.info", FileMode.OpenOrCreate);
+            //    StreamWriter sw222 = new StreamWriter(my_info_stream22);
+            //    sw222.WriteLine(my_name);
+            //    sw222.WriteLine(my_comment);
+            //    sw222.Close();
+            //    my_info_stream22.Close();
+            //}
             FileStream my_info_stream = new FileStream(directory + "\\myself.info", FileMode.OpenOrCreate);
             StreamReader sr2 = new StreamReader(my_info_stream);
             if (!sr2.EndOfStream)
@@ -722,7 +735,7 @@ namespace SKChat
             public bool isCategory = false;
             public override string ToString()
             {
-                return name;
+                return show_name+"("+stu_num+")";
             }
         }
     }

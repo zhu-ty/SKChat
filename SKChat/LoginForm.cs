@@ -76,7 +76,7 @@ namespace SKChat
         private void Failed()
         {
             MessageBox.Show("登录失败！");
-            login_socket.Close();
+            //login_socket.Close();
         }
 
         private void Success()

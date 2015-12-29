@@ -64,6 +64,12 @@ namespace SKChat
             if (richTextBox1.Text != string.Empty)
                 richTextBox1.AppendText("\r\n");
             add_text_rich1(t.text_pack.name + "  " + t.timestamp.ToString() + "\r\n" + t.text_pack.text, Color.Green);
+            //listBox1.Update();
+            listBox1.Items.Clear();
+            foreach (SKMsgCore.SKFriend f in friends)
+            {
+                listBox1.Items.Add(f);
+            }
         }
 
         private void listBox1_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -72,6 +78,24 @@ namespace SKChat
             {
                 core.master.refresh();
                 core.new_window((SKMsgCore.SKFriend)listBox1.SelectedItem);
+            }
+        }
+        bool delete_enter = false;
+        private void richTextBox2_TextChanged(object sender, EventArgs e)
+        {
+            if (delete_enter)
+            {
+                richTextBox2.Text = "";
+                delete_enter = false;
+            }
+        }
+
+        private void richTextBox2_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Control && e.KeyValue == 13)
+            {
+                button1_Click(this,new EventArgs());
+                delete_enter = true;
             }
         }
     }

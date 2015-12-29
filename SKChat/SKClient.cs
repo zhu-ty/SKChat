@@ -277,7 +277,7 @@ namespace DA32ProtocolCsharp
         /// <param name="info"></param>
         /// <param name="target_ip"></param>
         /// <returns></returns>
-        public bool SendNotFile(SKMsgInfoBase info, IPAddress target_ip)
+        public bool SendNotFile(SKMsgInfoBase info, IPAddress target_ip, string tar_stu_num)
         {
             client_lock.WaitOne();
             if ((info.type == SKMsgInfoBase.mestype.TEXT || info.type== SKMsgInfoBase.mestype.GROUP_TEXT) &&
@@ -296,7 +296,7 @@ namespace DA32ProtocolCsharp
                     i--;
                     continue;
                 }
-                if (((IPEndPoint)(c.RemoteEndPoint)).Address.ToString() == target_ip.ToString())
+                if (((IPEndPoint)(c.RemoteEndPoint)).Address.ToString() == target_ip.ToString() && ((IPEndPoint)(c.RemoteEndPoint)).Port.ToString() == int.Parse(tar_stu_num.Substring(tar_stu_num.Length - 4)).ToString())
                 {
                     if (c.Connected == true)
                     {
@@ -316,7 +316,7 @@ namespace DA32ProtocolCsharp
             if (c_now == null && info.type != SKMsgInfoBase.mestype.EXIT)
             {
                 c_now = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                IAsyncResult connect_result = c_now.BeginConnect(target_ip, SKServer.ListenPort, null, null);
+                IAsyncResult connect_result = c_now.BeginConnect(target_ip, int.Parse(tar_stu_num.Substring(tar_stu_num.Length - 4)), null, null);
                 connect_result.AsyncWaitHandle.WaitOne(max_connect_senconds * 1000);//10s
                 if (!connect_result.IsCompleted)
                 {
@@ -365,7 +365,7 @@ namespace DA32ProtocolCsharp
         /// <param name="file_full"></param>
         /// <param name="stu_num"></param>
         /// <returns></returns>
-        public bool SendFile(IPAddress target_ip, string file_full,string stu_num)
+        public bool SendFile(IPAddress target_ip, string file_full, string stu_num, string tar_stu_num)
         {
             Thread file_thread = new Thread(SendFileThread);
             file_thread.IsBackground = true;
@@ -375,6 +375,7 @@ namespace DA32ProtocolCsharp
             this_object.file_full_path = file_full;
             this_object.t = file_thread;
             this_object.m = new Mutex();
+            this_object.tar_stu_num = tar_stu_num;
             file_threads.Add(this_object);
             file_thread.Start(this_object);
             return true;
@@ -386,7 +387,7 @@ namespace DA32ProtocolCsharp
                 SendFileDialog sfd = new SendFileDialog();
                 ip_with_file_path ip_and_file_path = (ip_with_file_path)this_object;
                 Socket send_socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                IAsyncResult connect_result = send_socket.BeginConnect(ip_and_file_path.ip, SKServer.ListenPort, null, null);
+                IAsyncResult connect_result = send_socket.BeginConnect(ip_and_file_path.ip,int.Parse(ip_and_file_path.tar_stu_num.Substring(ip_and_file_path.tar_stu_num.Length - 4)), null, null);
                 connect_result.AsyncWaitHandle.WaitOne(max_connect_senconds * 1000);//10s
                 if (!connect_result.IsCompleted)
                 {
@@ -538,6 +539,7 @@ namespace DA32ProtocolCsharp
             public string stu_num;
             public Thread t;
             public Mutex m;
+            public string tar_stu_num;
         }
         private List<ip_with_file_path> file_threads = new List<ip_with_file_path>();
         private Mutex client_lock = new Mutex();

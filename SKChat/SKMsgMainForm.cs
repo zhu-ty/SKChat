@@ -69,8 +69,11 @@ namespace SKChat
         {
             if (textBox1.Text.Length > 20)
                 textBox1.Text = textBox1.Text.Substring(0, 20);
-            if(msg_core != null)
+            if (msg_core != null)
+            {
                 msg_core._my_name = textBox1.Text;
+                refresh();
+            }
         }
 
         /// <summary>
@@ -93,7 +96,10 @@ namespace SKChat
             if (textBox2.Text.Length > 30)
                 textBox2.Text = textBox2.Text.Substring(0, 30);
             if (msg_core != null)
+            {
                 msg_core._my_comment = textBox2.Text;
+                refresh();
+            }
         }
         /// <summary>
         /// 打开新窗口，调用刷新
@@ -174,7 +180,8 @@ namespace SKChat
                     listBox1.Items.Add(f);
                 }
             };
-            listBox1.Invoke(refresh_act);
+            if(this.Visible)
+                listBox1.Invoke(refresh_act);
             //msg_core.refresh();
             //listBox1.Items.Clear();
             //foreach (SKMsgCore.SKFriend f in msg_core.friend_list)
@@ -243,42 +250,6 @@ namespace SKChat
         }
     }
 
-    //public class ListBoxItemEx
-    //{
-    //    public string ID //id
-    //    {
-    //        get;
-    //        set;
-    //    }
-    //    public string Remarks //备注
-    //    {
-    //        get;
-    //        set;
-    //    }
-    //    public string Comment  //签名
-    //    {
-    //        get;
-    //        set;
-    //    }
-    //    public Bitmap Img  //图像
-    //    {
-    //        get;
-    //        set;
-    //    }
-    //    public bool isCategory  //是否属于分类
-    //    {
-    //        get;
-    //        set;
-    //    }
-    //    public ListBoxItemEx(string id, string remarks, string comment, Bitmap img, bool iscategory)
-    //    {
-    //        ID = id;
-    //        Remarks = remarks;
-    //        Comment = comment;
-    //        Img = img;
-    //        isCategory = iscategory;
-    //    }
-    //}
     public class ListBoxEx : ListBox
     {
         //public new ArrayList Items = new ArrayList();
