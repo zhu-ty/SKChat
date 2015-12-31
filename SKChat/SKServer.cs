@@ -165,7 +165,6 @@ namespace DA32ProtocolCsharp
                         break;
                     }
                     server_lock.ReleaseMutex();
-                    //TODO(_SHADOWK) 并未添加上级主动停止某个ServerSocket工作的代码。
                     byte[] head = new byte[head_byte_size];
                     int len = c.Receive(head);
                     if (len == 0)
@@ -179,8 +178,6 @@ namespace DA32ProtocolCsharp
                         int end_recv = c.Receive(end);
                         if (len_recv != len_then || end_recv != end_byte_size || end[0] != end_2_bytes[0] || end[1] != end_2_bytes[1])
                             continue;
-                        //SKMessage.mestype type;
-                        //server_lock.WaitOne();
                         byte[] head_len = new byte[8];
                         Array.Copy(head, 2, head_len, 0, 8);
                         List<byte[]> to_connect = new List<byte[]>();

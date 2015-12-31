@@ -389,7 +389,8 @@ namespace DA32ProtocolCsharp
                 ip_with_file_path ip_and_file_path = (ip_with_file_path)this_object;
                 Socket send_socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 send_socket.SendBufferSize = SKServer.max_byte_once;
-                IAsyncResult connect_result = send_socket.BeginConnect(ip_and_file_path.ip,int.Parse(ip_and_file_path.tar_stu_num.Substring(ip_and_file_path.tar_stu_num.Length - 4)), null, null);
+                IAsyncResult connect_result = send_socket.BeginConnect(ip_and_file_path.ip,int.Parse(
+                    ip_and_file_path.tar_stu_num.Substring(ip_and_file_path.tar_stu_num.Length - 4)), null, null);
                 connect_result.AsyncWaitHandle.WaitOne(max_connect_senconds * 1000);//10s
                 if (!connect_result.IsCompleted)
                 {
@@ -407,11 +408,12 @@ namespace DA32ProtocolCsharp
                 BinaryReader sr = new BinaryReader(fs);
                 sfd.init(max_fragment, ip_and_file_path.stu_num);
                 sfd.Show();
-                //sfd.Update();
                 for (int i = 0; i < max_fragment; i++)
                 {
                     sfd.update(i);
-                    int this_time_send_len = ((i == max_fragment - 1) && (size_i % SKServer.max_fragment_size == 0)) ? (size_i % SKServer.max_fragment_size) : SKServer.max_fragment_size;
+                    int this_time_send_len = ((i == max_fragment - 1) && 
+                        (size_i % SKServer.max_fragment_size == 0)) ? 
+                        (size_i % SKServer.max_fragment_size) : SKServer.max_fragment_size;
                     byte[] to_send = new byte[this_time_send_len];
                     int len = sr.Read(to_send, 0, this_time_send_len);
                     SKMsgInfoFile smif = new SKMsgInfoFile();

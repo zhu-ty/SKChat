@@ -45,7 +45,6 @@ namespace SKChat
         {
             try
             {
-                //login_socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 IPAddress ip = IPAddress.Parse(textBox3.Text);
                 int port = int.Parse(textBox4.Text);
                 IAsyncResult connect_result = login_socket.BeginConnect(ip, port, null, null);

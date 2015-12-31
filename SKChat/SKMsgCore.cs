@@ -361,7 +361,7 @@ namespace SKChat
                     SKGroupMsgWindow sgmw = null;
                     foreach (SKGroupMsgWindow n in g_window_list)
                     {
-                        if (compare_friends(friend_list_new, n.friends))
+                        if (n.Visible && compare_friends(friend_list_new, n.friends))
                         {
                             sgmw = n;
                             break;
@@ -455,7 +455,6 @@ namespace SKChat
             IPAddress tar_ip = find_ip(target_stu_num);
             if (tar_ip != null)
             {
-                //clients.SendText(random.Next(0, 65535), master.get_name(), text, tar_ip, DateTime.Now);
                 SKMsgInfoText sit = new SKMsgInfoText();
                 sit.stu_num = my_stu_num;
                 sit.text_pack.text = text;

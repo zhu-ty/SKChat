@@ -76,7 +76,6 @@ namespace DA32ProtocolCsharp
                             info_base.id = id;
                             info_base.type = type;
                             info_base.verified = true;
-                            //暂时关闭了md5校验……
                             info_base.timestamp = DateTime.ParseExact(time_s, "yyyy.MM.dd HH:mm:ss", null);
                             break;
                         }
@@ -88,7 +87,6 @@ namespace DA32ProtocolCsharp
                             info_file.id = id;
                             info_file.type = type;
                             info_file.verified = true;
-                            //暂时关闭了md5校验……
                             info_file.timestamp = DateTime.ParseExact(time_s, "yyyy.MM.dd HH:mm:ss", null);
                             info_file.max_fragment = (int)json_object["data"]["max_fragment"];
                             info_file.this_fragment = (int)json_object["data"]["this_fragment"];
@@ -107,7 +105,6 @@ namespace DA32ProtocolCsharp
                             info_file_invite.id = id;
                             info_file_invite.type = type;
                             info_file_invite.verified = true;
-                            //暂时关闭了md5校验……
                             info_file_invite.timestamp = DateTime.ParseExact(time_s, "yyyy.MM.dd HH:mm:ss", null);
                             info_file_invite.size = (int)json_object["data"]["size"];
                             info_file_invite.file_name = (string)json_object["data"]["file_name"];
@@ -121,7 +118,6 @@ namespace DA32ProtocolCsharp
                             info_group_text.id = id;
                             info_group_text.type = type;
                             info_group_text.verified = true;
-                            //暂时关闭了md5校验……
                             info_group_text.timestamp = DateTime.ParseExact(time_s, "yyyy.MM.dd HH:mm:ss", null);
                             int list_len = (int)json_object["data"]["list_len"];
                             info_group_text.text_pack.name = (string)json_object["data"]["name"];
@@ -140,7 +136,6 @@ namespace DA32ProtocolCsharp
                             info_text.id = id;
                             info_text.type = type;
                             info_text.verified = true;
-                            //暂时关闭了md5校验……
                             info_text.timestamp = DateTime.ParseExact(time_s, "yyyy.MM.dd HH:mm:ss", null);
                             info_text.text_pack.name = (string)json_object["data"]["name"];
                             info_text.text_pack.text = (string)json_object["data"]["text"];
@@ -153,7 +148,6 @@ namespace DA32ProtocolCsharp
                             info_base.id = id;
                             info_base.type = type;
                             info_base.verified = true;
-                            //暂时关闭了md5校验……
                             info_base.timestamp = DateTime.ParseExact(time_s, "yyyy.MM.dd HH:mm:ss", null);
                             SKMsgInfoSync info_sync = (SKMsgInfoSync)info_base;
                             info_sync.comment = (string)json_object["data"]["comment"];
